@@ -585,6 +585,9 @@ void HAL_Init()
 #if (defined HAL_KEY) && (HAL_KEY == TRUE)
   HAL_KeyInit( );
 #endif
+#if (defined HAL_HW_I2C) && (HAL_HW_I2C == TRUE)
+  HW_I2C_Init();
+#endif
 #if (defined HAL_OLED) && (HAL_OLED == TRUE)
   HAL_OLED_Init( );
 #endif

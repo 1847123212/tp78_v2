@@ -1,8 +1,8 @@
 /********************************** (C) COPYRIGHT *******************************
  * File Name          : PS2.c
  * Author             : ChnMasterOG
- * Version            : V1.2
- * Date               : 2022/1/26
+ * Version            : V2.0
+ * Date               : 2022/11/30
  * Description        : PS/2驱动源文件
  * SPDX-License-Identifier: GPL-3.0
  *******************************************************************************/
@@ -32,17 +32,17 @@ uint8_t PS2_WaitCLKState( BOOL wait_high )
 {
     uint32_t timeout = PS2_TIMEOUT;
     if ( wait_high ) {
-      while (!PS2CLK_State()) {  //等待CLK高
-        if (timeout == 0) return 1;
-        timeout--;
-        DelayUs(1);
-      }
+        while (!PS2CLK_State()) {  //等待CLK高
+            if (timeout == 0) return 1;
+            timeout--;
+            DelayUs(1);
+        }
     } else {
-      while (PS2CLK_State()) {  //等待CLK低
-        if (timeout == 0) return 1;
-        timeout--;
-        DelayUs(1);
-      }
+        while (PS2CLK_State()) {  //等待CLK低
+            if (timeout == 0) return 1;
+            timeout--;
+            DelayUs(1);
+        }
     }
     return 0;
 }
@@ -177,8 +177,8 @@ uint8_t PS2_Config(uint8_t reg, uint8_t res)
 *******************************************************************************/
 void PS2_En_Data_Report(void)
 {
-	  PS2CLK_Set();
-	  PS2CLK_GPIO_(ModeCfg)( PS2CLK_Pin, GPIO_ModeIN_PU );
+    PS2CLK_Set();
+    PS2CLK_GPIO_(ModeCfg)( PS2CLK_Pin, GPIO_ModeIN_PU );
 }
 
 /*******************************************************************************
@@ -241,52 +241,52 @@ void PS2_IT_handler(void)
 *******************************************************************************/
 uint8_t PS2_Init(char* buf, BOOL is_IT)
 { 	
-  uint8_t res, sta;
+    uint8_t res, sta;
 
-  //IO
-	PS2CLK_GPIO_(SetBits)( PS2CLK_Pin );
+    // config gpio
+    PS2CLK_GPIO_(SetBits)( PS2CLK_Pin );
 	PS2CLK_GPIO_(ModeCfg)( PS2CLK_Pin, GPIO_ModeOut_PP_20mA );
 	PS2_Dis_Data_Report();
 	PS2DATA_GPIO_(ModeCfg)( PS2DATA_Pin, GPIO_ModeIN_PU );
 
-	// config
+	// config mode
 	sta = PS2_Config(PS_RESET, 0xFA);
 	if (sta != 0) {
 	    strcpy(buf, "[ERR-1]PS_RESET STEP1");
 	    return 1;
 	}
 	sta = PS2_ReadByte(&res);   //AA
-  if (sta != 0 || res != 0xAA) {
-      strcpy(buf, "[ERR-2]PS_RESET STEP2");
-      return 1;
-  } else if (res != 0xAA) {
-      strcpy(buf, "[WAR-2] PS_RESET STEP2");
-  }
-  sta = PS2_ReadByte(&res);   //ID号：0
-  if (sta != 0) {
-      strcpy(buf, "[ERR-3]PS_RESET STEP3");
-      return 1;
-  } else if (res != 0x00) {
-    strcpy(buf, "[WAR-3] PS_RESET STEP3");
-  }
-  sta = PS2_Config(SET_DEFAULT, 0xFA);
-  if (sta != 0) {
-      strcpy(buf, "[ERR-4]SET_DEFAULT");
-      return 1;
-  }
-  sta = PS2_Config(EN_DATA_REPORT, 0xFA);
-  if (sta != 0) {
-      strcpy(buf, "[ERR-5]EN_DATA_REPORT");
-      return 1;
-  }
-  if (is_IT) {
-      PS2_En_Data_Report();
-      DelayMs(10);   //等待稳定
-      PS2CLK_GPIO_(ITModeCfg)( PS2CLK_Pin, GPIO_ITMode_FallEdge );
-      PFIC_EnableIRQ( GPIO_B_IRQn );  //PS2CLK_GPIO
-  }
-  strcpy(buf, "[READY]Mouse");
-  return 0;
+    if (sta != 0 || res != 0xAA) {
+        strcpy(buf, "[ERR-2]PS_RESET STEP2");
+        return 1;
+    } else if (res != 0xAA) {
+        strcpy(buf, "[WAR-2] PS_RESET STEP2");
+    }
+    sta = PS2_ReadByte(&res);   //ID号：0
+    if (sta != 0) {
+        strcpy(buf, "[ERR-3]PS_RESET STEP3");
+        return 1;
+    } else if (res != 0x00) {
+        strcpy(buf, "[WAR-3] PS_RESET STEP3");
+    }
+    sta = PS2_Config(SET_DEFAULT, 0xFA);
+    if (sta != 0) {
+        strcpy(buf, "[ERR-4]SET_DEFAULT");
+        return 1;
+    }
+    sta = PS2_Config(EN_DATA_REPORT, 0xFA);
+    if (sta != 0) {
+        strcpy(buf, "[ERR-5]EN_DATA_REPORT");
+        return 1;
+    }
+    if (is_IT) {
+        PS2_En_Data_Report();
+        DelayMs(10);   //等待稳定
+        PS2CLK_GPIO_(ITModeCfg)( PS2CLK_Pin, GPIO_ITMode_FallEdge );
+        PFIC_EnableIRQ( GPIO_B_IRQn );  //PS2CLK_GPIO
+    }
+    strcpy(buf, "[READY]Mouse");
+    return 0;
 }
 
 __INTERRUPT

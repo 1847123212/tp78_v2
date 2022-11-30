@@ -13,10 +13,11 @@
     #include "CH58x_common.h"
     
     #define SIZE        8
-    #define XLevelL		0x00
-    #define XLevelH		0x10
-    #define Max_Column	128
-    #define Brightness	0xFF
+    #define XLevelL     0x00
+    #define XLevelH     0x10
+    #define Max_Column  128
+    #define Brightness  0xFF
+    #define OLED_ADDR   0x78
 
     #define OLED_CLK_Pin        GPIO_Pin_9
     #define OLED_SDA_Pin        GPIO_Pin_8
@@ -31,17 +32,19 @@
 
     #define OLED_CMD  0	//写命令
     #define OLED_DATA 1	//写数据
-    #define IIC_DELAY { OLED_IIC_Delay(); }
+    #define I2C_DELAY { OLED_SW_I2C_Delay(); }
 
     #define OLED_HIS_LEN    10    //保存OLED打印历史条数
     #define OLED_HIS_DLEN   64    //每条OLED打印历史长度
 
+    #if (defined HAL_HW_I2C) && (HAL_HW_I2C == TRUE)
+        #define OLED_WR_Byte(dat, cmd)  HW_I2C_WR_Reg(cmd ? 0x40 : 0, dat, OLED_ADDR)
+    #else
+        #define OLED_WR_Byte(dat, cmd)  OLED_SW_I2C_WR_Byte(dat, cmd)
+    #endif
+
     //OLED控制函数
-    void OLED_IIC_Delay(void);
-    void OLED_IIC_Start(void);
-    void OLED_IIC_Stop(void);
-    void OLED_WR_Byte(uint8_t dat,uint8_t cmd);
-    void OLED_IIC_SendByte(uint8_t Data);
+    void OLED_SW_I2C_WR_Byte(uint8_t dat,uint8_t cmd);
     void OLED_Set_Pos(uint8_t x, uint8_t y);
     void OLED_Display_On(void);
     void OLED_Display_Off(void);

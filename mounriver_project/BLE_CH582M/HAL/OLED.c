@@ -8,7 +8,7 @@
  *******************************************************************************/
 
 #include <stdarg.h>
-#include "OLED.h"
+#include "HAL.h"
 
 //OLED的显存
 //存放格式如下.
@@ -24,57 +24,64 @@
 uint8_t OLED_printf_history[OLED_HIS_LEN][OLED_HIS_DLEN+1] = {};  // 存放OLED_printf的历史记录
 static uint8_t OLED_printf_history_idx = 0;  // 存放OLED打印历史的下标
 
-/* OLED I2C 延迟函数 */
-void OLED_IIC_Delay(void)
+/*******************************************************************************
+* Function Name  : OLED_SW_I2C_Delay
+* Description    : OLED软件模拟I2C-延迟函数
+* Input          : None
+* Return         : None
+*******************************************************************************/
+static void OLED_SW_I2C_Delay(void)
 {
 	uint32_t i = 5;
 	while( i-- );
 }
 
-/* OLED I2C 启动传输 */
-void OLED_IIC_Start(void)
+/*******************************************************************************
+* Function Name  : OLED_SW_I2C_Start
+* Description    : OLED软件模拟I2C-Start信号
+* Input          : None
+* Return         : None
+*******************************************************************************/
+static void OLED_SW_I2C_Start(void)
 {
 	OLED_IIC_SDIN_Set();
-	IIC_DELAY;
+	I2C_DELAY;
 
 	OLED_IIC_SCLK_Set() ;
-	IIC_DELAY;
+	I2C_DELAY;
 
 	OLED_IIC_SDIN_Clr();
-	IIC_DELAY;
+	I2C_DELAY;
 
 	OLED_IIC_SCLK_Clr();
-	IIC_DELAY;
+	I2C_DELAY;
 }
 
-/* OLED I2C 停止传输 */
-void OLED_IIC_Stop(void)
+/*******************************************************************************
+* Function Name  : OLED_SW_I2C_Stop
+* Description    : OLED软件模拟I2C-Stop信号
+* Input          : None
+* Return         : None
+*******************************************************************************/
+static void OLED_SW_I2C_Stop(void)
 {
 	OLED_IIC_SDIN_Clr();
-	IIC_DELAY;
+	I2C_DELAY;
 
 	OLED_IIC_SCLK_Set();
-	IIC_DELAY;
+	I2C_DELAY;
 
 	OLED_IIC_SDIN_Set();
-	IIC_DELAY;
+	I2C_DELAY;
 }
 
-void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
-{
-    OLED_IIC_Start();
-	OLED_IIC_SendByte(0x78);
-	if(cmd == 0) {
-	    OLED_IIC_SendByte(0x00);
-	}
-	else {
-		OLED_IIC_SendByte(0x40);
-	}
-   OLED_IIC_SendByte(dat);    
-   OLED_IIC_Stop(); 
-}
-
-void OLED_IIC_SendByte(uint8_t Data)
+/*******************************************************************************
+* Function Name  : OLED_SW_I2C_SendByte
+* Description    : OLED软件模拟I2C-I2C发送1字节
+* Input          : Data
+* Return         : None
+*******************************************************************************/
+static void OLED_SW_I2C_SendByte(uint8_t Data)
 {
     uint8_t i;
 	OLED_IIC_SCLK_Clr();
@@ -87,17 +94,37 @@ void OLED_IIC_SendByte(uint8_t Data)
 			OLED_IIC_SDIN_Clr();
 		} 
 		Data <<= 1;
-		IIC_DELAY;
+		I2C_DELAY;
 		OLED_IIC_SCLK_Set();
-		IIC_DELAY;
+		I2C_DELAY;
 		OLED_IIC_SCLK_Clr();
-		IIC_DELAY;		
+		I2C_DELAY;
 	}
 	OLED_IIC_SDIN_Set();
-	IIC_DELAY;
+	I2C_DELAY;
 	OLED_IIC_SCLK_Set();
-	IIC_DELAY;   
+	I2C_DELAY;
 	OLED_IIC_SCLK_Clr(); 
+}
+
+/*******************************************************************************
+* Function Name  : OLED_SW_I2C_WR_Byte
+* Description    : OLED软件模拟I2C-写寄存器
+* Input          : Data
+* Return         : None
+*******************************************************************************/
+void OLED_SW_I2C_WR_Byte(uint8_t dat, uint8_t cmd)
+{
+  OLED_SW_I2C_Start();
+  OLED_SW_I2C_SendByte(0x78);
+  if(cmd == 0) {
+    OLED_SW_I2C_SendByte(0x00);
+  }
+  else {
+    OLED_SW_I2C_SendByte(0x40);
+  }
+  OLED_SW_I2C_SendByte(dat);
+  OLED_SW_I2C_Stop();
 }
 
 /**
@@ -443,12 +470,13 @@ int OLED_printf(uint8_t x, uint8_t y, char *pFormat, ...)
 void HAL_OLED_Init(void)
 { 	
   //IO
+#if !(defined HAL_HW_I2C) || (HAL_HW_I2C != TRUE)
   OLED_CLK_GPIO_(SetBits)( OLED_CLK_Pin );
   OLED_SDA_GPIO_(SetBits)( OLED_SDA_Pin );
   OLED_CLK_GPIO_(ModeCfg)( OLED_CLK_Pin, GPIO_ModeOut_PP_5mA );
   OLED_SDA_GPIO_(ModeCfg)( OLED_SDA_Pin, GPIO_ModeOut_PP_5mA );
-
-  DelayMs(50);  //200
+#endif
+  DelayMs(20);  //上电延迟
 
   OLED_WR_Byte(0xAE,OLED_CMD);//--turn off oled panel
 

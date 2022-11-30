@@ -103,6 +103,9 @@
 #ifndef HAL_RF
 #define HAL_RF                      TRUE   // RF 2.4G
 #endif
+#ifndef HAL_HW_I2C
+#define HAL_HW_I2C                  TRUE   // Ó²¼þI2C
+#endif
 #ifndef SW_PAINTEDEGG
 #define SW_PAINTEDEGG               TRUE   // ²Êµ°
 #endif
