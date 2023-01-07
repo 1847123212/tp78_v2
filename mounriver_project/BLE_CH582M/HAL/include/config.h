@@ -77,46 +77,58 @@
 #define WAKE_UP_RTC_MAX_TIME				45
 #endif
 #ifndef HAL_KEY
-#define HAL_KEY											FALSE  // 板载按键
+#define HAL_KEY											FALSE         // 板载按键
 #endif
 #ifndef HAL_LED
-#define HAL_LED											FALSE  // 板载LED
+#define HAL_LED											FALSE         // 板载LED
 #endif
 #ifndef HAL_USB
-#define HAL_USB                     TRUE   // USB
+#define HAL_USB                     TRUE          // USB
 #endif
 #ifndef HAL_PS2
-#define HAL_PS2                     TRUE   // PS/2小红点
+#define HAL_PS2                     FALSE         // PS/2小红点
 #endif
 #ifndef HAL_KEYBOARD
-#define HAL_KEYBOARD                TRUE   // 键盘
+#define HAL_KEYBOARD                FALSE          // 键盘
 #endif
 #ifndef HAL_OLED
-#define HAL_OLED                    TRUE   // OLED
+#define HAL_OLED                    TRUE          // OLED
 #endif
 #ifndef HAL_BATTADC
-#define HAL_BATTADC                 TRUE   // 电池ADC
+#define HAL_BATTADC                 TRUE          // 电池ADC
 #endif
 #ifndef HAL_WS2812_PWM
-#define HAL_WS2812_PWM              TRUE   // WS2812 PWM驱动
+#define HAL_WS2812_PWM              TRUE          // WS2812 PWM驱动
 #endif
 #ifndef HAL_RF
-#define HAL_RF                      TRUE   // RF 2.4G
+#define HAL_RF                      FALSE          // RF 2.4G
 #endif
 #ifndef HAL_HW_I2C
-#define HAL_HW_I2C                  TRUE   // 硬件I2C
+#define HAL_HW_I2C                  TRUE          // 硬件I2C
 #endif
 #ifndef SW_PAINTEDEGG
-#define SW_PAINTEDEGG               TRUE   // 彩蛋
+#define SW_PAINTEDEGG               TRUE          // 彩蛋
+#endif
+#ifndef HAL_I2C_TP
+#define HAL_I2C_TP                  FALSE         // I2C小红点
+#endif
+#ifndef HAL_MPR121_CAPMOUSE
+#define HAL_MPR121_CAPMOUSE         TRUE          // MPR121触摸板
+#endif
+#ifndef HAL_MPR121_TOUCHBAR
+#define HAL_MPR121_TOUCHBAR         FALSE          // MPR121触摸条
+#endif
+#ifndef MSG_CP
+#define MSG_CP                      FALSE         // CP通讯(触摸条/触摸板/压力传感/I2C小红点)
 #endif
 #ifndef TEM_SAMPLE
-#define TEM_SAMPLE									TRUE
+#define TEM_SAMPLE									TRUE          // 温度采样
 #endif
 #ifndef BLE_CALIBRATION_ENABLE
-#define BLE_CALIBRATION_ENABLE			TRUE
+#define BLE_CALIBRATION_ENABLE			TRUE          // BLE校准
 #endif
 #ifndef BLE_CALIBRATION_PERIOD
-#define BLE_CALIBRATION_PERIOD			120000
+#define BLE_CALIBRATION_PERIOD			120000        // BLE校准周期
 #endif
 #ifndef BLE_SNV
 #define BLE_SNV											TRUE
@@ -153,7 +165,7 @@
 #endif
 
 #ifdef HAL_OLED
-#define OLED_PRINT(X...)            OLED_printf(0, 0, X)
+#define OLED_PRINT(X...)            OLED_UI_printf(X)
 #else
 #define OLED_PRINT(X...)
 #endif

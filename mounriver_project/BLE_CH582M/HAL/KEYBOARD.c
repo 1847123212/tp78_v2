@@ -1,8 +1,8 @@
 /********************************** (C) COPYRIGHT *******************************
  * File Name          : KEYBOARD.c
  * Author             : ChnMasterOG
- * Version            : V1.5
- * Date               : 2022/3/19
+ * Version            : V2.0
+ * Date               : 2022/12/1
  * Description        : 机械键盘驱动源文件
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
  * SPDX-License-Identifier: GPL-3.0
@@ -13,7 +13,7 @@
 /* 彩蛋 */
 #include "snake.h"
 
-const uint32_t Row_Pin[ROW_SIZE] = {GPIO_Pin_7, GPIO_Pin_6, GPIO_Pin_5, GPIO_Pin_4, GPIO_Pin_3, GPIO_Pin_2};   //row 6 - 其它键盘布局需修改此处
+const uint32_t Row_Pin[ROW_SIZE] = {GPIO_Pin_9, GPIO_Pin_8, GPIO_Pin_6, GPIO_Pin_5, GPIO_Pin_3, GPIO_Pin_2};   //row 6 - 其它键盘布局需修改此处
 const uint32_t Colum_Pin[COL_SIZE] = {GPIO_Pin_9, GPIO_Pin_7, GPIO_Pin_11, GPIO_Pin_12, GPIO_Pin_13, GPIO_Pin_4, GPIO_Pin_5,
                                       GPIO_Pin_6, GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3, GPIO_Pin_15, GPIO_Pin_14};   //colum 14 - 其它键盘布局需修改此处
 //row*colum = 6*14 = 84
@@ -217,12 +217,6 @@ UINT8 KEYBOARD_Custom_Function( void )
     } else if ( Keyboarddat->Key1 == KEY_4 && Fn_Mode != Fn_Mode_SelectDevice4 ) { // 切换至设备4
       Fn_Mode = Fn_Mode_SelectDevice4;
       Fn_cnt = 0;
-    } else if ( Keyboarddat->Key1 == KEY_5 && Fn_Mode != Fn_Mode_SelectDevice5 ) { // 切换至设备5
-      Fn_Mode = Fn_Mode_SelectDevice5;
-      Fn_cnt = 0;
-    } else if ( Keyboarddat->Key1 == KEY_6 && Fn_Mode != Fn_Mode_SelectDevice6 ) { // 切换至设备6
-      Fn_Mode = Fn_Mode_SelectDevice6;
-      Fn_cnt = 0;
     } else if ( Keyboarddat->Key1 == KEY_F1 && Fn_Mode != Fn_Mode_LED_Style1 ) { // 呼吸灯模式1
       Fn_Mode = Fn_Mode_LED_Style1;
       Fn_cnt = 0;
@@ -252,8 +246,8 @@ UINT8 KEYBOARD_Custom_Function( void )
           Fn_cnt = 0;
           Fn_Mode = Fn_Mode_None;
           KEYBOARD_Reset( );
-          OLED_PRINT("Reset OK!");
-          tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+          OLED_UI_add_SHOWINFO_task("Reset OK!");
+          OLED_UI_add_CANCELINFO_delay_task(100);
         }
         break;
       case Fn_Mode_ChangeKey:
@@ -261,8 +255,8 @@ UINT8 KEYBOARD_Custom_Function( void )
         if ( Fn_cnt == 0x0C ) {
           Fn_cnt = 0;
           Fn_Mode = Fn_Mode_None;
-          OLED_PRINT("Change OK!");
-          tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+          OLED_UI_add_SHOWINFO_task("Change OK!");
+          OLED_UI_add_CANCELINFO_delay_task(100);
           KEYBOARD_ChangeKey( dst_key, src_key );
         }
         break;
@@ -310,33 +304,33 @@ UINT8 KEYBOARD_Custom_Function( void )
         if ( !BLE_Ready && !RF_Ready ) {
           enable_BLE = !enable_BLE;
           bStatus_t status = GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &enable_BLE );
-          if ( status != SUCCESS ) OLED_PRINT("ERR %d", status);
-          else if ( enable_BLE ) OLED_PRINT("BLE ENA");
-          else OLED_PRINT("BLE DIS");
-          tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+          if ( status != SUCCESS ) OLED_UI_add_SHOWINFO_task("ERR %d", status);
+          else if ( enable_BLE ) OLED_UI_add_SHOWINFO_task("BLE ENA");
+          else OLED_UI_add_SHOWINFO_task("BLE DIS");
+          OLED_UI_add_CANCELINFO_delay_task(100);
         }
         break;
       case Fn_Mode_DisEnableTP:
         Fn_Mode = Fn_Mode_None; // Fn+T关闭/开启小红点
         enable_TP = !enable_TP;
-        if ( enable_TP ) OLED_PRINT("TP ENA");
-        else OLED_PRINT("TP DIS");
-        tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+        if ( enable_TP ) OLED_UI_add_SHOWINFO_task("TP ENA");
+        else OLED_UI_add_SHOWINFO_task("TP DIS");
+        OLED_UI_add_CANCELINFO_delay_task(100);
         break;
       case Fn_Mode_PriorityUSBorBLE:  // Fn+0优先蓝牙/RF或USB切换
         Fn_Mode = Fn_Mode_None;
         extern BOOL priority_USB;
         priority_USB = !priority_USB;
         if ( USB_Ready && (BLE_Ready || RF_Ready) ) {
-          OLED_ShowOK(26 + priority_USB * 30, 0, FALSE);
-          OLED_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+          OLED_UI_ShowOK(26 + priority_USB * 30, 0, FALSE);
+          OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
         }
-        if ( priority_USB ) OLED_PRINT("PRI USB");
-        else if ( !RF_Ready ) OLED_PRINT("PRI BLE");
-        else OLED_PRINT("PRI RF");
-        tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+        if ( priority_USB ) OLED_UI_add_SHOWINFO_task("PRI USB");
+        else if ( !RF_Ready ) OLED_UI_add_SHOWINFO_task("PRI BLE");
+        else OLED_UI_add_SHOWINFO_task("PRI RF");
+        OLED_UI_add_CANCELINFO_delay_task(100);
         break;
-      case Fn_Mode_SelectDevice1 ... Fn_Mode_SelectDevice6: // 按Fn+1~6切换设备
+      case Fn_Mode_SelectDevice1 ... Fn_Mode_SelectDevice4: // 按Fn+1~4切换设备
         DeviceAddress[5] = Fn_Mode - Fn_Mode_SelectDevice1 + 1;
         Fn_Mode = Fn_Mode_None;
         tmos_start_task( hidEmuTaskId, CHANGE_ADDR_EVT, 500 );
@@ -344,31 +338,31 @@ UINT8 KEYBOARD_Custom_Function( void )
       case Fn_Mode_LED_Style1:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
-        OLED_ShowString(20, 1, "S0");
+        OLED_UI_add_SHOWSTRING_task(20, 1, "S0");
         led_style_func = WS2812_Style_Off;  // Fn+1 - 关闭背光
         break;
       case Fn_Mode_LED_Style2:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
-        OLED_ShowString(20, 1, "S1");
+        OLED_UI_add_SHOWSTRING_task(20, 1, "S1");
         led_style_func = WS2812_Style_Breath;  // Fn+2 - 背光使用呼吸灯模式
         break;
       case Fn_Mode_LED_Style3:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
-        OLED_ShowString(20, 1, "S2");
+        OLED_UI_add_SHOWSTRING_task(20, 1, "S2");
         led_style_func = WS2812_Style_Waterful;  // Fn+3 - 背光使用流水灯模式
         break;
       case Fn_Mode_LED_Style4:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
-        OLED_ShowString(20, 1, "S3");
+        OLED_UI_add_SHOWSTRING_task(20, 1, "S3");
         led_style_func = WS2812_Style_Touch;  // Fn+4 - 背光使用触控呼吸灯模式
         break;
       case Fn_Mode_LED_Style5:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
-        OLED_ShowString(20, 1, "S4");
+        OLED_UI_add_SHOWSTRING_task(20, 1, "S4");
         led_style_func = WS2812_Style_Rainbow;  // Fn+5 - 背光使用彩虹灯模式
         break;
       case Fn_Mode_GiveUp:
@@ -423,7 +417,7 @@ void KEYBOARD_Detection( void )
     if (KeyArr_ChangeTimes > 0 && KeyArr_ChangeTimes <= MAX_CHANGETIMES) {  // 进入CapsLock键盘布局改变计数等待
         if (KeyArr_ChangeTimes == MAX_CHANGETIMES) { // 计数值到达MAX_CHANGETIMES改变键盘布局
             KeyArr_Ptr = Extra_CustomKey;
-            OLED_ShowString(2, 1, "L2");
+            OLED_UI_add_SHOWSTRING_task(2, 1, "L2");
         }
         ++KeyArr_ChangeTimes; // 键盘计数值递增
     } else if (press_Capslock) {  // CapsLock被按下
@@ -478,7 +472,7 @@ void KEYBOARD_Detection( void )
                 if (CustomKey[current_colum][current_row] == KEY_CapsLock) {  // 弹起大小写键离开Extra_CustomKey层
                     if (KeyArr_ChangeTimes > MAX_CHANGETIMES) {
                         KeyArr_Ptr = CustomKey;
-                        OLED_ShowString(2, 1, "L1");
+                        OLED_UI_add_SHOWSTRING_task(2, 1, "L1");
                     }
                     if (press_NormalKey == FALSE || KeyArr_ChangeTimes <= MAX_CHANGETIMES) {
                         if (KEYBOARD_data_index < 8) {
@@ -533,7 +527,7 @@ uint8_t KEYBOARD_EnterPasskey( uint32_t* key )
   } else if ( idx == 6 ) {  // 最后一个按键是Enter则结束
       if ( Keyboarddat->Key1 == KEY_ENTER ) {
           OLED_PRINT("Send!");
-          tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+          OLED_UI_add_CANCELINFO_delay_task(100);
           *key = passkey;
           passkey = idx = passkey_str[0] = 0;
           return 0;

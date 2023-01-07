@@ -148,9 +148,7 @@
     #define Fn_Mode_SelectDevice1         0xE1
     #define Fn_Mode_SelectDevice2         0xE2
     #define Fn_Mode_SelectDevice3         0xE3
-    #define Fn_Mode_SelectDevice4         0xE4
-    #define Fn_Mode_SelectDevice5         0xE5
-    #define Fn_Mode_SelectDevice6         0xE6  // Mode SaveAddr-SelectDevice6需连续
+    #define Fn_Mode_SelectDevice4         0xE4  // Mode SaveAddr-SelectDevice4需连续
     #define Fn_Mode_LED_Style1            0xF0
     #define Fn_Mode_LED_Style2            0xF1
     #define Fn_Mode_LED_Style3            0xF2
@@ -180,6 +178,7 @@
         uint8_t data[8];
     }Keyboardstate;
 
+    extern uint32_t Row_Pin_ALL, Colum_Pin_ALL;
     extern uint8_t KEYBOARD_data_ready, KEYBOARD_mouse_ready, LED_Change_flag;
     extern Keyboardstate* const Keyboarddat;
     extern BOOL PaintedEggMode;

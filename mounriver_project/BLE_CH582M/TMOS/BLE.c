@@ -424,7 +424,7 @@ uint16 HidEmu_ProcessEvent( uint8 task_id, uint16 events )
 
   if ( events & START_ENTER_PASSKEY_EVT )
   {
-    OLED_PRINT("Passkey=?");
+    OLED_UI_add_SHOWINFO_task("Passkey=?");
     EnterPasskey_flag = TRUE;
 
     return ( events ^ START_ENTER_PASSKEY_EVT );

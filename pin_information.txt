@@ -1,0 +1,43 @@
+引脚号|脚名称说明
+4|PA7|col1
+5|PA8lbat adc-必须作为ADC
+6|PA9|col0
+7IPB9|row0
+8|PB8|row1
+9|PB17|(备选普通io) - 暂定电池正在充电信号
+10|PB16|(备选普通io) - 暂定电池充电完成信号
+11PB15|(支持5V) PS/2鼠标scl，不可调整
+12IPB14|(支持5V) PS/2 标sda，不可调整
+13|PB13|(支持5V)i2c scl，不可调整
+14|PB12|(支持5V)i2c sda，不可调整
+15|PB11IUSB D+，不可调整
+16|PB10|USB D-，不可调整
+17IPB7ITXD0
+18|PB6|row2
+19|PB5|row3
+20IPB4IRXD0
+21IPB3|row4
+22|PB2|row5
+23|PB1|作为按键io引脚，尽量不调整
+24|PB0|作为LED控制引脚，尽量不调整
+25IPB23|RST
+26|PB22|BOOT
+27|PB21|UART3的TXD3引脚映射
+28|PB20|UART3的RXD3引脚映射
+29|PB19|(备选普通io)
+30|PB20|(备选普通io) - 暂定同I2C组成6线通信的唤醒信号
+31[X32MO|hse晶振
+32|X32MI|hse晶振
+36|PA4|col5
+37|PA5|col6
+38|PA6|col7
+39|PA0|col8
+40|PA1|col9
+41|PA2|col10
+42|PA3|col11
+43|PA15|col12
+44|PA14|col13
+45|PA13|col4
+46|PA12|col3
+47|PA11lcol2
+48|PA10|ws2812控制，不可调整

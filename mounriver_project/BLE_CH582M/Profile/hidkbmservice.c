@@ -1,12 +1,12 @@
 /********************************** (C) COPYRIGHT *******************************
-* File Name          : hidkbmservice.c
-* Author             : ChnMasterOG, WCH
-* Version            : V1.0
-* Date               : 2021/12/4
-* Description        : 键鼠服务源文件
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* SPDX-License-Identifier: GPL-3.0
-*******************************************************************************/
+ * File Name          : hidkbmservice.c
+ * Author             : ChnMasterOG, WCH
+ * Version            : V1.0
+ * Date               : 2021/12/4
+ * Description        : 键鼠服务源文件
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * SPDX-License-Identifier: GPL-3.0
+ *******************************************************************************/
 
 /*********************************************************************
  * INCLUDES
@@ -33,49 +33,49 @@
  */
 
 // HID service
-CONST uint8 hidServUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidServUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(HID_SERV_UUID), HI_UINT16(HID_SERV_UUID)
 };
 
 // HID Information characteristic
-CONST uint8 hidInfoUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidInfoUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(HID_INFORMATION_UUID), HI_UINT16(HID_INFORMATION_UUID)
 };
 
 // HID Report Map characteristic
-CONST uint8 hidReportMapUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidReportMapUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(REPORT_MAP_UUID), HI_UINT16(REPORT_MAP_UUID)
 };
 
 // HID Control Point characteristic
-CONST uint8 hidControlPointUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidControlPointUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(HID_CTRL_PT_UUID), HI_UINT16(HID_CTRL_PT_UUID)
 };
 
 // HID Report characteristic
-CONST uint8 hidReportUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidReportUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(REPORT_UUID), HI_UINT16(REPORT_UUID)
 };
 
 // HID Protocol Mode characteristic
-CONST uint8 hidProtocolModeUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidProtocolModeUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(PROTOCOL_MODE_UUID), HI_UINT16(PROTOCOL_MODE_UUID)
 };
 
 // HID Boot Keyboard Input Report characteristic
-CONST uint8 hidBootKeyInputUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidBootKeyInputUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(BOOT_KEY_INPUT_UUID), HI_UINT16(BOOT_KEY_INPUT_UUID)
 };
 
 // HID Boot Keyboard Output Report characteristic
-CONST uint8 hidBootKeyOutputUUID[ATT_BT_UUID_SIZE] =
+const uint8 hidBootKeyOutputUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(BOOT_KEY_OUTPUT_UUID), HI_UINT16(BOOT_KEY_OUTPUT_UUID)
 };
@@ -93,7 +93,7 @@ CONST uint8 hidBootKeyOutputUUID[ATT_BT_UUID_SIZE] =
  */
 
 // HID Information characteristic value
-static CONST uint8 hidInfo[HID_INFORMATION_LEN] =
+static const uint8 hidInfo[HID_INFORMATION_LEN] =
 {
   LO_UINT16(0x0111), HI_UINT16(0x0111),             // bcdHID (USB HID version)
   0x00,                                             // bCountryCode
@@ -101,7 +101,7 @@ static CONST uint8 hidInfo[HID_INFORMATION_LEN] =
 };
 
 // HID Report Map characteristic value
-static CONST uint8 hidReportMap[] =
+static const uint8 hidReportMap[] =
 {
   0x05, 0x01,     // USAGE_PAGE (Generic Desktop)
   0x09, 0x02,     // USAGE (Mouse)
@@ -213,7 +213,7 @@ static hidRptMap_t  hidRptMap[HID_NUM_REPORTS];
  */
 
 // HID Service attribute
-static CONST gattAttrType_t hidService = { ATT_BT_UUID_SIZE, hidServUUID };
+static const gattAttrType_t hidService = { ATT_BT_UUID_SIZE, hidServUUID };
 
 // Include attribute (Battery service)
 static uint16 include = GATT_INVALID_HANDLE;

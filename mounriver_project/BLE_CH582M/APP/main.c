@@ -9,11 +9,11 @@
 *******************************************************************************/
 
 /********************************** (C) COPYRIGHT *******************************
- *  Pin information: 
+ *  Pin information:
  *  PB10 & PB11 --- USB1; [PA0~PA7 & PA9 & PA11~PA15] & [PB2/PB3/PB5/PB6/PB8/PB9] --- KeyBoard
- *  PB15 & PB14 --- PS/2 Reserved; PA10 --- WS2812(TMR1); PB13 & PB12 --- TXD1_/RXD1_
- *  PA8 --- Battery ADC; PB7 & PB4 --- TXD0/RXD0; PB21 & PB20 ---SCL_/SDA_
- *  PB0 --- LED; PB1 --- KEY;
+ *  PB15(*) & PB14 --- PS/2 Reserved; PA10 --- WS2812(TMR1); PB13 & PB12 --- SCL/SDA
+ *  PA8 --- Battery ADC; PB7 & PB4 --- TXD0/RXD0; PB21 & PB20 ---TXD3_/RXD3_
+ *  PB0 --- LED; PB1 --- KEY; PB15(*) --- I2C TrackPoint IRQ; PB19 --- MPR121 IRQ
  ********************************* (C) COPYRIGHT ********************************/
 
 /*********************************************************************
@@ -56,37 +56,79 @@ void Main_Circulation()
 * Output         : None
 * Return         : None
 *******************************************************************************/
-int main( void ) 
+int main( void )
 {
 #if (defined (DCDC_ENABLE)) && (DCDC_ENABLE == TRUE)
   PWR_DCDCCfg( ENABLE );
 #endif
   SetSysClock( CLK_SOURCE_PLL_60MHz );
-  FLASH_ROM_LOCK( 0 );  // unlock flash
 #if (defined (HAL_SLEEP)) && (HAL_SLEEP == TRUE)
   GPIOA_ModeCfg( GPIO_Pin_All, GPIO_ModeIN_PU );
   GPIOB_ModeCfg( GPIO_Pin_All, GPIO_ModeIN_PU );
 #endif
-#ifdef DEBUG
-  GPIOB_SetBits(1<<13); // PB13
-  GPIOB_ModeCfg(1<<13, GPIO_ModeOut_PP_5mA);
-  GPIOPinRemap(ENABLE, RB_PIN_UART1);
-  UART1_DefInit( );
+#ifdef DEBUG  // DEBUG = 3(use UART3)
+  GPIOB_SetBits(GPIO_Pin_21);
+  GPIOB_ModeCfg(GPIO_Pin_20, GPIO_ModeIN_PU);       // RXD-配置上拉输入
+  GPIOB_ModeCfg(GPIO_Pin_21, GPIO_ModeOut_PP_5mA);  // TXD-配置推挽输出，注意先让IO口输出高电平
+  GPIOPinRemap(ENABLE, RB_PIN_UART3);
+  UART3_DefInit();
 #endif
   PRINT("%s\n",VER_LIB);
-  CH57X_BLEInit( );
+  CH58X_BLEInit( );
   HAL_Init( );
+#if (defined (HAL_RF)) && (HAL_RF == TRUE)
   if (RF_Ready == FALSE) {
+#endif
     GAPRole_PeripheralInit( );
     HidDev_Init( );
     HidEmu_Init( );
+#if (defined (HAL_RF)) && (HAL_RF == TRUE)
   } else {
     RF_RoleInit();
     RF_Init();
   }
+#endif
   tmos_start_task( halTaskID, MAIN_CIRCULATION_EVENT, 10 ); // 主循环
   tmos_start_task( halTaskID, WS2812_EVENT, 10 );  // 背光控制
+  tmos_start_task( halTaskID, OLED_UI_EVENT, 10 );  // OLED UI
+  tmos_start_task( halTaskID, MPR121_EVENT, 10 );  // MPR121
   Main_Circulation();
+}
+
+/*******************************************************************************
+* Function Name  : GPIOA_IRQHandler
+* Description    : GPIOA外部中断
+* Input          : None
+* Return         : None
+*******************************************************************************/
+__INTERRUPT
+__HIGH_CODE
+void GPIOA_IRQHandler(void)
+{
+#if (defined MSG_CP) && (MSG_CP == TRUE)
+  CP_WAKEUP_GPIO(SetBits)( CP_WAKEUP_PIN );   // 唤醒CP
+  CP_Ready = FALSE;
+  tmos_start_task( halTaskID, CP_INITIAL_EVENT, MS1_TO_SYSTEM_TIME(300) );  // CP重新上电
+#endif
+  GPIOA_ClearITFlagBit(Colum_Pin_ALL);
+}
+
+/*******************************************************************************
+* Function Name  : GPIOB_IRQHandler
+* Description    : GPIOB外部中断
+* Input          : None
+* Return         : None
+*******************************************************************************/
+__INTERRUPT
+__HIGH_CODE
+void GPIOB_IRQHandler( void )
+{
+#if (defined HAL_PS2) && (HAL_PS2 == TRUE)
+  PS2_IT_handler();
+#endif
+#if (defined HAL_I2C_TP) && (HAL_I2C_TP == TRUE)
+  I2C_TP_IT_handler();
+#endif
 }
 
 /******************************** endfile @ main ******************************/

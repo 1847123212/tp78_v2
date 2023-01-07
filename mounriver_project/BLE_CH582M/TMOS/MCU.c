@@ -28,9 +28,11 @@ UINT8* HIDKey = &HID_DATA[6];
 UINT8* HIDVolume = &HID_DATA[15];
 
 tmosTaskID halTaskID = INVALID_TASK_ID;
-BOOL USB_CapsLock_LEDOn = FALSE, BLE_CapsLock_LEDOn = FALSE, RF_CapsLock_LEDOn = FALSE;
+BOOL USB_CapsLock_LEDOn = FALSE, BLE_CapsLock_LEDOn = FALSE, RF_CapsLock_LEDOn = FALSE; // USB/BLE/RF大小写信号
 BOOL priority_USB = TRUE;   // USB和蓝牙/RF同时连接选择
 BOOL enable_BLE = TRUE;   // 使能或失能蓝牙
+BOOL CP_Ready = FALSE;    // CP就绪信号
+uint32_t idle_cnt = 0;    // 无有效操作计数值，idle_cnt大于阈值则进入休眠
 
 static BOOL CapsLock_LEDOn_state = FALSE; // Caps Lock LED ON/OFF
 static BOOL connection_state[3] = { FALSE, FALSE, FALSE };  // USB/BLE/RF state
@@ -106,6 +108,51 @@ __attribute__((weak)) void HID_PS2TP_Process(void)
 }
 
 /*******************************************************************************
+* Function Name  : HID_I2CTP_Process
+* Description    : I2C小红点处理函数
+* Input          : 无
+* Return         : 无
+*******************************************************************************/
+__attribute__((weak)) void HID_I2CTP_Process(void)
+{
+  if (I2C_TP_data_ready != 0 && enable_TP == TRUE) {    // 发送小红点鼠标数据
+    I2C_TP_data_ready = 0;
+    if (I2C_TP_ReadPacket() == 0) { // 正常接受完数据包
+      if ( USB_Ready == TRUE && priority_USB == TRUE ) {
+        tmos_set_event( usbTaskID, USB_MOUSE_EVENT );  //USB鼠标事件
+      } else if ( BLE_Ready == TRUE ) {
+        tmos_set_event( hidEmuTaskId, START_MOUSE_REPORT_EVT );  //蓝牙鼠标事件
+      } else if ( RF_Ready == TRUE ) {
+        tmos_set_event( RFTaskId, SBP_RF_MOUSE_REPORT_EVT );  // RF键盘事件
+      }
+    } else {
+      OLED_UI_add_SHOWINFO_task("TPdat ER");
+      OLED_UI_add_CANCELINFO_delay_task(100);
+    }
+  }
+}
+
+/*******************************************************************************
+* Function Name  : HID_CapMouse_Process
+* Description    : MPR121触摸板处理函数
+* Input          : 无
+* Return         : 无
+*******************************************************************************/
+__attribute__((weak)) void HID_CapMouse_Process(void)
+{
+  if (cap_mouse_data_change) {
+    cap_mouse_data_change = 0;
+    if ( USB_Ready == TRUE && priority_USB == TRUE ) {
+      tmos_set_event( usbTaskID, USB_MOUSE_EVENT );  //USB鼠标事件
+    } else if ( BLE_Ready == TRUE ) {
+      tmos_set_event( hidEmuTaskId, START_MOUSE_REPORT_EVT );  //蓝牙鼠标事件
+    } else if ( RF_Ready == TRUE ) {
+      tmos_set_event( RFTaskId, SBP_RF_MOUSE_REPORT_EVT );  // RF键盘事件
+    }
+  }
+}
+
+/*******************************************************************************
 * Function Name  : HID_VOL_Process
 * Description    : 音量控制处理函数
 * Input          : 无
@@ -158,19 +205,19 @@ __attribute__((weak)) void SW_OLED_Capslock_Process(void)
 {
   if ( USB_Ready && priority_USB && CapsLock_LEDOn_state != USB_CapsLock_LEDOn ) {
     CapsLock_LEDOn_state = USB_CapsLock_LEDOn;
-    OLED_ShowCapslock(56, 1, CapsLock_LEDOn_state);
+    OLED_UI_ShowCapslock(56, 1, CapsLock_LEDOn_state);
   } else if ( BLE_Ready && !priority_USB && CapsLock_LEDOn_state != BLE_CapsLock_LEDOn ) {
     CapsLock_LEDOn_state = BLE_CapsLock_LEDOn;
-    OLED_ShowCapslock(56, 1, CapsLock_LEDOn_state);
+    OLED_UI_ShowCapslock(56, 1, CapsLock_LEDOn_state);
   } else if ( RF_Ready && !priority_USB && CapsLock_LEDOn_state != RF_CapsLock_LEDOn ) {
     CapsLock_LEDOn_state = RF_CapsLock_LEDOn;
-    OLED_ShowCapslock(56, 1, CapsLock_LEDOn_state);
+    OLED_UI_ShowCapslock(56, 1, CapsLock_LEDOn_state);
   }
 }
 
 /*******************************************************************************
 * Function Name  : SW_OLED_UBStatus_Process
-* Description    : USB或BLE状态OLED处理函数(检测USB/蓝牙/RF连接状态：连接状态改变OLED显示)
+* Description    : USB或BLE/RF状态OLED处理函数(检测USB/蓝牙/RF连接状态：连接状态改变OLED显示)
 * Input          : 无
 * Return         : 无
 *******************************************************************************/
@@ -178,45 +225,48 @@ __attribute__((weak)) void SW_OLED_UBStatus_Process(void)
 {
   if (connection_state[0] != USB_Ready) {
     connection_state[0] = USB_Ready;
-    if ( USB_Ready ) OLED_ShowString(8, 0, "USB");
-    else OLED_ShowString(8, 0, "   ");
+    if ( USB_Ready ) OLED_UI_add_SHOWSTRING_task(8, 0, "USB");
+    else OLED_UI_add_SHOWSTRING_task(8, 0, "   ");
     if ( USB_Ready ^ BLE_Ready ) priority_USB = USB_Ready;
     // 同时出现USB和蓝牙/RF时进行显示
-    if ( USB_Ready && (BLE_Ready || RF_Ready) ) OLED_ShowOK(26 + !priority_USB * 30, 0, TRUE);
-    else {
-      OLED_ShowOK(26, 0, FALSE);
-      OLED_ShowOK(56, 0, FALSE);
+    if ( USB_Ready && (BLE_Ready || RF_Ready) ) {
+      OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+    } else {
+      OLED_UI_ShowOK(26, 0, FALSE);
+      OLED_UI_ShowOK(56, 0, FALSE);
     }
   } else if (connection_state[1] != BLE_Ready) {
     connection_state[1] = BLE_Ready;
 //    HalLedSet(HAL_LED_1, BLE_Ready);
-    if ( BLE_Ready ) OLED_ShowString(38, 0, "BLE");
+    if ( BLE_Ready ) OLED_UI_add_SHOWSTRING_task(38, 0, "BLE");
     else {
-      OLED_ShowString(38, 0, "   ");
+      OLED_UI_add_SHOWSTRING_task(38, 0, "   ");
       if ( EnterPasskey_flag == TRUE ) {  // 打断输入配对状态
         EnterPasskey_flag = FALSE;
         BLE_Passkey = 0;
-        OLED_PRINT("Close!");
-        tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+        OLED_UI_add_SHOWINFO_task("Close!");
+        OLED_UI_add_CANCELINFO_delay_task(100);
       }
     }
     if ( USB_Ready ^ BLE_Ready ) priority_USB = USB_Ready;
     // 同时出现USB和蓝牙时进行显示
-    if ( USB_Ready && BLE_Ready ) OLED_ShowOK(26 + !priority_USB * 30, 0, TRUE);
-    else {
-      OLED_ShowOK(26, 0, FALSE);
-      OLED_ShowOK(56, 0, FALSE);
+    if ( USB_Ready && BLE_Ready ) {
+      OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+    } else {
+      OLED_UI_ShowOK(26, 0, FALSE);
+      OLED_UI_ShowOK(56, 0, FALSE);
     }
   } else if (connection_state[2] != RF_Ready) {
     connection_state[2] = RF_Ready;
-    if ( RF_Ready ) OLED_ShowString(41, 0, "RF");
-    else OLED_ShowString(41, 0, "  ");
+    if ( RF_Ready ) OLED_UI_add_SHOWSTRING_task(41, 0, "RF");
+    else OLED_UI_add_SHOWSTRING_task(41, 0, "  ");
     if ( USB_Ready ^ RF_Ready ) priority_USB = USB_Ready;
     // 同时出现USB和RF时进行显示
-    if ( USB_Ready && RF_Ready ) OLED_ShowOK(26 + !priority_USB * 30, 0, TRUE);
-    else {
-      OLED_ShowOK(26, 0, FALSE);
-      OLED_ShowOK(56, 0, FALSE);
+    if ( USB_Ready && RF_Ready ) {
+      OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+    } else {
+      OLED_UI_ShowOK(26, 0, FALSE);
+      OLED_UI_ShowOK(56, 0, FALSE);
     }
   }
 }
@@ -257,11 +307,64 @@ __attribute__((weak)) void HW_WS2812_Process(void)
 }
 
 /*******************************************************************************
+* Function Name  : HW_MSG_CP_Process
+* Description    : I2C核间通信
+* Input          : 无
+* Return         : 无
+*******************************************************************************/
+__attribute__((weak)) void HW_MSG_CP_Process(void)
+{
+  uint8_t dat, err;
+  err = CP_I2C_RD_Reg(CP_CHANGE_REG, &dat);
+  /* mouse data is changed */
+  if (err == 0 && dat != 0) {
+    CP_I2C_WR_Reg(CP_CHANGE_REG, 0);
+    CP_I2C_Muti_RD_Reg(CP_MOUSEDATA_REG, HIDMouse, HID_MOUSE_DATA_LENGTH);
+#ifdef DEBUG
+    OLED_UI_add_SHOWINFO_task("%d %d", HIDMouse[1], HIDMouse[2]); //debug
+#endif
+    if ( USB_Ready == TRUE && priority_USB == TRUE ) {
+      tmos_set_event( usbTaskID, USB_MOUSE_EVENT );  //USB鼠标事件
+    } else if ( BLE_Ready == TRUE ) {
+      tmos_set_event( hidEmuTaskId, START_MOUSE_REPORT_EVT );  //蓝牙鼠标事件
+    } else if ( RF_Ready == TRUE ) {
+      tmos_set_event( RFTaskId, SBP_RF_MOUSE_REPORT_EVT );  // RF键盘事件
+    }
+  }
+}
+
+/*******************************************************************************
+* Function Name  : HW_TouchBar_Process
+* Description    : 触摸条处理
+* Input          : 无
+* Return         : 无
+*******************************************************************************/
+__attribute__((weak)) void HW_TouchBar_Process(void)
+{
+  if (touchbar_data_change) {
+    touchbar_data_change = 0;
+    if ( USB_Ready == TRUE && priority_USB == TRUE ) {
+      tmos_set_event( usbTaskID, USB_MOUSE_EVENT );  //USB鼠标事件
+    } else if ( BLE_Ready == TRUE ) {
+      tmos_set_event( hidEmuTaskId, START_MOUSE_REPORT_EVT );  //蓝牙鼠标事件
+    } else if ( RF_Ready == TRUE ) {
+      tmos_set_event( RFTaskId, SBP_RF_MOUSE_REPORT_EVT );  // RF键盘事件
+    }
+  }
+}
+
+/*******************************************************************************
  *  处理函数注册
  *******************************************************************************/
 HID_ProcessFunc_s HID_ProcessFunc_v = {
   .keyboard_func = HID_KEYBOARD_Process,
+#if (defined HAL_PS2) && (HAL_PS2 == TRUE)
   .mouse_func = HID_PS2TP_Process,
+#elif (defined HAL_I2C_TP) && (HAL_I2C_TP == TRUE)
+  .mouse_func = HID_I2CTP_Process,
+#else  // default MPR121 cap mouse
+  .mouse_func = HID_CapMouse_Process,
+#endif
   .volume_func = HID_VOL_Process,
 };
 SW_ProcessFunc_s SW_ProcessFunc_v = {
@@ -272,6 +375,8 @@ SW_ProcessFunc_s SW_ProcessFunc_v = {
 HW_ProcessFunc_s HW_ProcessFunc_v = {
   .battery_func = HW_Battery_Process,
   .ws2812_func = HW_WS2812_Process,
+  .msgcp_func = HW_MSG_CP_Process,
+  .touchbar_func = HW_TouchBar_Process,
 };
 
 /*******************************************************************************
@@ -344,7 +449,7 @@ u32 Lib_Write_Flash( u32 addr, u32 num, u32 *pBuf )
 #endif
 
 /*******************************************************************************
- * @fn          CH57X_BLEInit
+ * @fn          CH58X_BLEInit
  *
  * @brief       BLE 库初始化
  *
@@ -358,67 +463,70 @@ u32 Lib_Write_Flash( u32 addr, u32 num, u32 *pBuf )
  *
  * @return      None.
  */
-void CH57X_BLEInit( void )
+void CH58X_BLEInit(void)
 {
-  uint8 i;
-  bleConfig_t cfg;
-  if ( tmos_memcmp( VER_LIB, VER_FILE, strlen( VER_FILE )  ) == FALSE )
-  {
-    PRINT( "head file error...\n" );
-    while( 1 )
-      ;
-  }
-  SysTick_Config( SysTick_LOAD_RELOAD_Msk );
-  PFIC_DisableIRQ( SysTick_IRQn );
+    uint8_t     i;
+    bleConfig_t cfg;
+    if(tmos_memcmp(VER_LIB, VER_FILE, strlen(VER_FILE)) == FALSE)
+    {
+        PRINT("head file error...\n");
+        while(1);
+    }
+    SysTick_Config(SysTick_LOAD_RELOAD_Msk);
+    PFIC_DisableIRQ(SysTick_IRQn);
 
-  tmos_memset( &cfg, 0, sizeof(bleConfig_t) );
-  cfg.MEMAddr = ( u32 ) MEM_BUF;
-  cfg.MEMLen = ( u32 ) BLE_MEMHEAP_SIZE;
-  cfg.BufMaxLen = ( u32 ) BLE_BUFF_MAX_LEN;
-  cfg.BufNumber = ( u32 ) BLE_BUFF_NUM;
-  cfg.TxNumEvent = ( u32 ) BLE_TX_NUM_EVENT;
-  cfg.TxPower = ( u32 ) BLE_TX_POWER;
-#if (defined (BLE_SNV)) && (BLE_SNV == TRUE)
-  FLASH_ROM_LOCK( 0 );                    // 解锁flash
-  cfg.SNVAddr = ( u32 ) BLE_SNV_ADDR;
-  cfg.readFlashCB = Lib_Read_Flash;
-  cfg.writeFlashCB = Lib_Write_Flash;
+    tmos_memset(&cfg, 0, sizeof(bleConfig_t));
+    cfg.MEMAddr = (uint32_t)MEM_BUF;
+    cfg.MEMLen = (uint32_t)BLE_MEMHEAP_SIZE;
+    cfg.BufMaxLen = (uint32_t)BLE_BUFF_MAX_LEN;
+    cfg.BufNumber = (uint32_t)BLE_BUFF_NUM;
+    cfg.TxNumEvent = (uint32_t)BLE_TX_NUM_EVENT;
+    cfg.TxPower = (uint32_t)BLE_TX_POWER;
+#if(defined(BLE_SNV)) && (BLE_SNV == TRUE)
+    cfg.SNVAddr = (uint32_t)BLE_SNV_ADDR;
+    cfg.readFlashCB = Lib_Read_Flash;
+    cfg.writeFlashCB = Lib_Write_Flash;
 #endif
-#if( CLK_OSC32K )	
-  cfg.SelRTCClock = ( u32 ) CLK_OSC32K;
+#if(CLK_OSC32K)
+    cfg.SelRTCClock = (uint32_t)CLK_OSC32K;
 #endif
-  cfg.ConnectNumber = ( PERIPHERAL_MAX_CONNECTION & 3 ) | ( CENTRAL_MAX_CONNECTION << 2 );
-  cfg.srandCB = SYS_GetSysTickCnt;
-#if (defined TEM_SAMPLE)  && (TEM_SAMPLE == TRUE)
-  cfg.tsCB = HAL_GetInterTempValue;    // 根据温度变化校准RF和内部RC( 大于7摄氏度 )
-#if( CLK_OSC32K )
-  cfg.rcCB = Lib_Calibration_LSI;    // 内部32K时钟校准
+    cfg.ConnectNumber = (PERIPHERAL_MAX_CONNECTION & 3) | (CENTRAL_MAX_CONNECTION << 2);
+    cfg.srandCB = SYS_GetSysTickCnt;
+#if(defined TEM_SAMPLE) && (TEM_SAMPLE == TRUE)
+    cfg.tsCB = HAL_GetInterTempValue; // 根据温度变化校准RF和内部RC( 大于7摄氏度 )
+  #if(CLK_OSC32K)
+    cfg.rcCB = Lib_Calibration_LSI; // 内部32K时钟校准
+  #endif
 #endif
+#if(defined(HAL_SLEEP)) && (HAL_SLEEP == TRUE)
+    cfg.WakeUpTime = WAKE_UP_RTC_MAX_TIME;
+    cfg.sleepCB = CH58X_LowPower; // 启用睡眠
 #endif
-#if (defined (HAL_SLEEP)) && (HAL_SLEEP == TRUE)
-  cfg.WakeUpTime = WAKE_UP_RTC_MAX_TIME;
-  cfg.sleepCB = CH58X_LowPower;    // 启用睡眠
-#endif
-#if (defined (BLE_MAC)) && (BLE_MAC == TRUE)
-  for ( i = 0; i < 6; i++ )
-    cfg.MacAddr[i] = MacAddr[5 - i];
+#if(defined(BLE_MAC)) && (BLE_MAC == TRUE)
+    for(i = 0; i < 6; i++)
+    {
+        cfg.MacAddr[i] = MacAddr[5 - i];
+    }
 #else
-  {
-    uint8 MacAddr[6];
-    GetMACAddress( MacAddr );
-    for(i=0;i<6;i++) cfg.MacAddr[i] = MacAddr[i];    // 使用芯片mac地址
-  }
+    {
+        uint8_t MacAddr[6];
+        GetMACAddress(MacAddr);
+        for(i = 0; i < 6; i++)
+        {
+            cfg.MacAddr[i] = MacAddr[i]; // 使用芯片mac地址
+        }
+    }
 #endif
-  if ( !cfg.MEMAddr || cfg.MEMLen < 4 * 1024 )
-    while( 1 )
-      ;
-  i = BLE_LibInit( &cfg );
-  if ( i )
-  {
-    PRINT( "LIB init error code: %x ...\n", i );
-    while( 1 )
-      ;
-  }
+    if(!cfg.MEMAddr || cfg.MEMLen < 4 * 1024)
+    {
+        while(1);
+    }
+    i = BLE_LibInit(&cfg);
+    if(i)
+    {
+        PRINT("LIB init error code: %x ...\n", i);
+        while(1);
+    }
 }
 
 /*******************************************************************************
@@ -440,6 +548,16 @@ void CH57X_BLEInit( void )
 tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
 {
   uint8 * msgPtr;
+#if ((defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)) || ((defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE))
+  uint16_t dat16;
+  static uint8_t collect_cnt = 0;
+#endif
+#if (defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)
+  uint8_t i;
+#endif
+#if (defined MSG_CP) && (MSG_CP == TRUE)
+  uint8_t dat, err;
+#endif
 
   if ( events & SYS_EVENT_MSG )
   {    // 处理HAL层消息，调用tmos_msg_receive读取消息，处理完成后删除消息。
@@ -481,6 +599,22 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
     return events ^ BATTERY_EVENT;
   }
 
+  // CP初始化事件
+  if ( events & CP_INITIAL_EVENT )
+  {
+#if (defined MSG_CP) && (MSG_CP == TRUE)
+    err = CP_I2C_RD_Reg(CP_STATUS_REG, &dat);
+    if (err != 0 || (dat & 0x1) == 0) {
+      tmos_start_task( halTaskID, CP_INITIAL_EVENT, MS1_TO_SYSTEM_TIME(20) );  // CP初始化周期 - 20ms
+    } else {
+      CP_Ready = TRUE;
+      OLED_UI_add_SHOWINFO_task("CP Ready");
+      OLED_UI_add_CANCELINFO_delay_task(100);
+    }
+#endif
+    return events ^ CP_INITIAL_EVENT;
+  }
+
   // 定时主循环事件
   if ( events & MAIN_CIRCULATION_EVENT)
   {
@@ -492,12 +626,22 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
     }
 #endif
     // 鼠标处理
-#if (defined HAL_PS2) && (HAL_PS2 == TRUE)
+#if ((defined HAL_PS2) && (HAL_PS2 == TRUE)) || ((defined HAL_I2C_TP) && (HAL_I2C_TP == TRUE)) || ((defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE))
     HID_ProcessFunc_v.mouse_func();
 #endif
     // 键盘处理
 #if (defined HAL_KEYBOARD) && (HAL_KEYBOARD == TRUE)
     HID_ProcessFunc_v.keyboard_func();
+#endif
+    // 触摸条处理
+#if (defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE)
+    HW_ProcessFunc_v.touchbar_func();
+#endif
+    // CP通信处理
+#if (defined MSG_CP) && (MSG_CP == TRUE)
+    if (CP_Ready == TRUE) {
+      HW_ProcessFunc_v.msgcp_func();
+    }
 #endif
     // OLED信息更新处理
 #if (defined HAL_OLED) && (HAL_OLED == TRUE)
@@ -505,6 +649,9 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
     SW_ProcessFunc_v.oled_capslock_func();
 #endif
     main_circulation_end:
+    if (++idle_cnt >= IDLE_MAX_PERIOD) {  // 进入低功耗模式
+      GotoLowpower(sleep_mode);
+    }
     tmos_start_task( halTaskID, MAIN_CIRCULATION_EVENT, MS1_TO_SYSTEM_TIME(5) ); // 5ms周期
     return events ^ MAIN_CIRCULATION_EVENT;
   }
@@ -519,13 +666,46 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
     return events ^ WS2812_EVENT;
   }
 
-  // OLED取消打勾事件
-  if ( events & OLED_EVENT )
+  // MPR121事件
+  if ( events & MPR121_EVENT )
+  {
+#if ((defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)) || ((defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE))
+    if (++collect_cnt >= ALG_COLLECT_CNT) {
+      collect_cnt = 0;
+    }
+#endif
+#if (defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)
+    if (collect_cnt == 0) {
+      MPR121_ALG_Judge_Cap_Mouse();
+    } else {
+      MPR121_ReadHalfWord(MPR121_REG_STS0, &dat16);
+      MPR121_ALG_Update_algListNode(cap_mouse_sts_head, 0, dat16);   // update cap_mouse status
+      for (i = 0; i < 4; i++) {
+        MPR121_ReadHalfWord(MPR121_REG_EFD0LB+2*MPR121_Cap_Mouse_Pinmux[i], &dat16);
+        MPR121_ALG_Update_algListNode(cap_mouse_dat_head, i, dat16);   // update cap_mouse data
+      }
+    }
+#endif
+#if (defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE)
+    if (collect_cnt == 0) {
+      MPR121_ALG_Judge_Touchbar();
+    } else {
+      MPR121_ReadHalfWord(MPR121_REG_STS0, &dat16);
+      MPR121_ALG_Update_algListNode(touchbar_head, 0, dat16);   // update touchbar status
+    }
+#endif
+    tmos_start_task( halTaskID, MPR121_EVENT, MS1_TO_SYSTEM_TIME(10) ); // 10ms控制周期
+    return events ^ MPR121_EVENT;
+  }
+
+  // OLED UI事件
+  if ( events & OLED_UI_EVENT )
   {
 #if (defined HAL_OLED) && (HAL_OLED == TRUE)
-    OLED_PRINT("");
+    OLED_UI_draw_thread_callback();
 #endif
-    return events ^ OLED_EVENT;
+    tmos_start_task( halTaskID, OLED_UI_EVENT, MS1_TO_SYSTEM_TIME(OLED_TASK_PERIOD) ); // (OLED_TASK_PERIOD)ms周期
+    return events ^ OLED_UI_EVENT;
   }
 
   // USB Ready事件
@@ -536,14 +716,14 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
   }
 
   // 硬件初始化事件
-  if ( events & HAL_REG_INIT_EVENT )
+  if(events & HAL_REG_INIT_EVENT)
   {
-#if (defined BLE_CALIBRATION_ENABLE) && (BLE_CALIBRATION_ENABLE == TRUE)	// 校准任务，单次校准耗时小于10ms
-    BLE_RegInit();    // 校准RF
-#if( CLK_OSC32K )	
-    Lib_Calibration_LSI();    // 校准内部RC
+#if(defined BLE_CALIBRATION_ENABLE) && (BLE_CALIBRATION_ENABLE == TRUE) // 校准任务，单次校准耗时小于10ms
+    BLE_RegInit();                                                  // 校准RF
+#if(CLK_OSC32K)
+    Lib_Calibration_LSI(); // 校准内部RC
 #endif
-    tmos_start_task( halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME( BLE_CALIBRATION_PERIOD ) );
+    tmos_start_task(halTaskID, HAL_REG_INIT_EVENT, MS1_TO_SYSTEM_TIME(BLE_CALIBRATION_PERIOD));
     return events ^ HAL_REG_INIT_EVENT;
 #endif
   }
@@ -576,7 +756,8 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
  */
 void HAL_Init()
 {
-  char debug_info[520] = "All Ready!";
+  char debug_info[128] = "All Ready!";
+
   halTaskID = TMOS_ProcessEventRegister( HAL_ProcessEvent );
   HAL_TimeInit();
 #if (defined HAL_SLEEP) && (HAL_SLEEP == TRUE)
@@ -586,7 +767,13 @@ void HAL_Init()
   HAL_KeyInit( );
 #endif
 #if (defined HAL_HW_I2C) && (HAL_HW_I2C == TRUE)
-  HW_I2C_Init();
+  HW_I2C_Init( );
+#if (defined HAL_I2C_TP) && (HAL_I2C_TP == TRUE)  // I2C_TP is used by HW I2C
+  I2C_TP_Init(debug_info);
+#endif
+#if ((defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)) || ((defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE))
+  MPR121_Init(debug_info);
+#endif
 #endif
 #if (defined HAL_OLED) && (HAL_OLED == TRUE)
   HAL_OLED_Init( );
@@ -606,7 +793,10 @@ void HAL_Init()
 #if (defined HAL_WS2812_PWM) && (HAL_WS2812_PWM == TRUE)
   WS2812_PWM_Init( );
 #endif
-#if (defined HAL_RF) && (HAL_RF == TRUE)
+#if (defined MSG_CP) && (MSG_CP == TRUE)
+  MSG_CP_Init(debug_info);
+#endif
+#if (defined HAL_RF) && (HAL_RF == TRUE) && !(defined TEST)
   FLASH_Read_RForBLE( );
 #endif
 #if (defined HAL_LED) && (HAL_LED == TRUE)
@@ -628,50 +818,41 @@ void HAL_Init()
   OLED_ShowChar(38, 1, 'D');
   FLASH_Read_DeviceID();
   OLED_ShowNum(44, 1, DeviceAddress[5], 1);
-  OLED_ShowCapslock(56, 1, FALSE);
+  OLED_UI_ShowCapslock(56, 1, FALSE);
   OLED_DrawBMP(91, 0, 91 + 32, 3, (uint8_t*)EmptyBattery);  // 绘制空电池
-  debug_info[7] = '\0';
+//  debug_info[7] = '\0';
   { // 限时打印
-  OLED_PRINT("%s", debug_info);
-  tmos_start_task( halTaskID, OLED_EVENT, MS1_TO_SYSTEM_TIME(3000) );
+    OLED_UI_add_SHOWINFO_task("%s", debug_info);
+    OLED_UI_add_CANCELINFO_delay_task(100);
   }
 //  tmos_start_task( halTaskID, HAL_TEST_EVENT, 1600 );    // 添加测试任务
 }
 
 /*******************************************************************************
- * @fn          HAL_GetInterTempValue
+ * @fn      HAL_GetInterTempValue
  *
- * @brief       如果使用了ADC中断采样，需在此函数中暂时屏蔽中断.
+ * @brief   获取内部温感采样值，如果使用了ADC中断采样，需在此函数中暂时屏蔽中断.
  *
- * input parameters
- *
- * @param       None.
- *
- * output parameters
- *
- * @param       None.
- *
- * @return      None.
+ * @return  内部温感采样值.
  */
-uint16 HAL_GetInterTempValue( void )
+uint16_t HAL_GetInterTempValue(void)
 {
-  uint8 sensor, channel, config, tkey_cfg;
-  uint16 adc_data;
-  
-  tkey_cfg = R8_TKEY_CFG;
-  sensor = R8_TEM_SENSOR;
-  channel = R8_ADC_CHANNEL;
-  config = R8_ADC_CFG;
-  ADC_InterTSSampInit();
-  R8_ADC_CONVERT |= RB_ADC_START;
-  while( R8_ADC_CONVERT & RB_ADC_START )
-    ;
-  adc_data = R16_ADC_DATA;
-  R8_TEM_SENSOR = sensor;
-  R8_ADC_CHANNEL = channel;
-  R8_ADC_CFG = config;
-  R8_TKEY_CFG = tkey_cfg;
-  return ( adc_data );
+    uint8_t  sensor, channel, config, tkey_cfg;
+    uint16_t adc_data;
+
+    tkey_cfg = R8_TKEY_CFG;
+    sensor = R8_TEM_SENSOR;
+    channel = R8_ADC_CHANNEL;
+    config = R8_ADC_CFG;
+    ADC_InterTSSampInit();
+    R8_ADC_CONVERT |= RB_ADC_START;
+    while(R8_ADC_CONVERT & RB_ADC_START);
+    adc_data = R16_ADC_DATA;
+    R8_TEM_SENSOR = sensor;
+    R8_ADC_CHANNEL = channel;
+    R8_ADC_CFG = config;
+    R8_TKEY_CFG = tkey_cfg;
+    return (adc_data);
 }
 
 /******************************** endfile @ mcu ******************************/
