@@ -45,7 +45,8 @@ extern "C"
 #define OLED_UI_EVENT                       0x0020
 #define USB_READY_EVENT                     0x0040
 #define MPR121_EVENT                        0x0080
-#define CP_INITIAL_EVENT                    0x0100
+#define SYST_EVENT                          0x0100
+#define CP_INITIAL_EVENT                    0x0200
 #define HAL_REG_INIT_EVENT                  0x2000
 #define HAL_TEST_EVENT                      0x4000
 
@@ -68,7 +69,12 @@ extern "C"
 #define FLASH_ADDR_RForBLE                  (10*1024+8)   // 启动默认RF模式或者BLE模式
 #define FLASH_ADDR_MPR121_ALG_Param         (10*1024+12)  // MPR121算法参数存储
 
-#define IDLE_MAX_PERIOD                     4000          // idle_cnt大于该值则进入休眠，单位为MAIN_CIRCULATION_EVENT进入次数
+#define IDLE_MAX_PERIOD                     240          // idle_cnt大于该值则进入休眠，单位为500ms
+
+#define MOTOR_PIN                           GPIO_Pin_18
+#define MOTOR_RUN()                         { GPIOB_SetBits( MOTOR_PIN ); }
+#define MOTOR_STOP()                        { GPIOB_ResetBits( MOTOR_PIN ); }
+#define MOTOR_Init()                        { GPIOB_SetBits( MOTOR_PIN ); GPIOB_ModeCfg( MOTOR_PIN, GPIO_ModeOut_PP_5mA ); GPIOB_ResetBits( MOTOR_PIN ); }
 
 typedef struct HID_ProcessFunc
 {

@@ -14,6 +14,7 @@
  *  PB15(*) & PB14 --- PS/2 Reserved; PA10 --- WS2812(TMR1); PB13 & PB12 --- SCL/SDA
  *  PA8 --- Battery ADC; PB7 & PB4 --- TXD0/RXD0; PB21 & PB20 ---TXD3_/RXD3_
  *  PB0 --- LED; PB1 --- KEY; PB15(*) --- I2C TrackPoint IRQ; PB19 --- MPR121 IRQ
+ *  PB18 --- Motor CTL
  ********************************* (C) COPYRIGHT ********************************/
 
 /*********************************************************************
@@ -92,6 +93,7 @@ int main( void )
   tmos_start_task( halTaskID, WS2812_EVENT, 10 );  // 背光控制
   tmos_start_task( halTaskID, OLED_UI_EVENT, 10 );  // OLED UI
   tmos_start_task( halTaskID, MPR121_EVENT, 10 );  // MPR121
+  tmos_start_task( halTaskID, SYST_EVENT, 10 );  // 系统定时
   Main_Circulation();
 }
 
@@ -110,7 +112,7 @@ void GPIOA_IRQHandler(void)
   CP_Ready = FALSE;
   tmos_start_task( halTaskID, CP_INITIAL_EVENT, MS1_TO_SYSTEM_TIME(300) );  // CP重新上电
 #endif
-  GPIOA_ClearITFlagBit(Colum_Pin_ALL);
+  GPIOA_ClearITFlagBit(Colum_Pin_ALL);  // 用于唤醒
 }
 
 /*******************************************************************************

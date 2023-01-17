@@ -89,7 +89,7 @@
 #define HAL_PS2                     FALSE         // PS/2小红点
 #endif
 #ifndef HAL_KEYBOARD
-#define HAL_KEYBOARD                FALSE          // 键盘
+#define HAL_KEYBOARD                TRUE          // 键盘
 #endif
 #ifndef HAL_OLED
 #define HAL_OLED                    TRUE          // OLED
@@ -99,6 +99,9 @@
 #endif
 #ifndef HAL_WS2812_PWM
 #define HAL_WS2812_PWM              TRUE          // WS2812 PWM驱动
+#endif
+#ifndef HAL_MOTOR
+#define HAL_MOTOR                   TRUE          // 震动马达
 #endif
 #ifndef HAL_RF
 #define HAL_RF                      FALSE          // RF 2.4G
@@ -113,7 +116,7 @@
 #define HAL_I2C_TP                  FALSE         // I2C小红点
 #endif
 #ifndef HAL_MPR121_CAPMOUSE
-#define HAL_MPR121_CAPMOUSE         TRUE          // MPR121触摸板
+#define HAL_MPR121_CAPMOUSE         FALSE          // MPR121触摸板
 #endif
 #ifndef HAL_MPR121_TOUCHBAR
 #define HAL_MPR121_TOUCHBAR         FALSE          // MPR121触摸条

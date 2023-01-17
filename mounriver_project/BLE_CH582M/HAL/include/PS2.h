@@ -52,9 +52,9 @@
               unsigned char Xspinbit : 1;
               unsigned char Xoverflow : 1;
               unsigned char Yoverflow : 1;
-              unsigned char XMovement : 8;
-              unsigned char YMovement : 8;
-              unsigned char ZMovement : 8;
+              signed char XMovement : 8;
+              signed char YMovement : 8;
+              signed char ZMovement : 8;
           };
       uint8_t data[4];
   }Mousestate;
