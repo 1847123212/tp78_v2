@@ -70,13 +70,13 @@
 #define DEFAULT_PAIRING_MODE                  GAPBOND_PAIRING_MODE_WAIT_FOR_REQ
 
 // Default MITM mode (TRUE to require passcode or OOB when pairing)
-#define DEFAULT_MITM_MODE                     FALSE//TRUE
+#define DEFAULT_MITM_MODE                     TRUE  //FALSE
 
 // Default bonding mode, TRUE to bond
 #define DEFAULT_BONDING_MODE                  TRUE
 
 // Default GAP bonding I/O capabilities
-#define DEFAULT_IO_CAPABILITIES               GAPBOND_IO_CAP_NO_INPUT_NO_OUTPUT//GAPBOND_IO_CAP_KEYBOARD_ONLY //GAPBOND_IO_CAP_KEYBOARD_ONLY
+#define DEFAULT_IO_CAPABILITIES               GAPBOND_IO_CAP_KEYBOARD_ONLY  //GAPBOND_IO_CAP_NO_INPUT_NO_OUTPUT
 
 // Battery level is critical when it is less than this %
 #define DEFAULT_BATT_CRITICAL_LEVEL           10
@@ -372,8 +372,13 @@ uint16 HidEmu_ProcessEvent( uint8 task_id, uint16 events )
     }
     status = GAP_ConfigDeviceAddr( ADDRTYPE_STATIC, DeviceAddress );
     if ( status == SUCCESS ) {
-//      OLED_PRINT("[S]Current Device: %d", DeviceAddress[5]);
+#ifdef OLED_0_91
       OLED_ShowNum(44, 1, DeviceAddress[5], 1);
+#endif
+#ifdef OLED_0_66
+      OLED_UI_add_SHOWINFO_task("BLE Dev %d", DeviceAddress[5]);
+      OLED_UI_add_CANCELINFO_delay_task(100);
+#endif
       BLE_SelectHostIndex = DeviceAddress[5] - 1;
       if ( hidEmuConnHandle != GAP_CONNHANDLE_INIT ) {
         GAPRole_TerminateLink( hidEmuConnHandle );  // disconnect
@@ -424,9 +429,9 @@ uint16 HidEmu_ProcessEvent( uint8 task_id, uint16 events )
 
   if ( events & START_ENTER_PASSKEY_EVT )
   {
+    OLED_Set_Scroll_ENA(0);
     OLED_UI_add_SHOWINFO_task("Passkey=?");
     EnterPasskey_flag = TRUE;
-
     return ( events ^ START_ENTER_PASSKEY_EVT );
   }
 

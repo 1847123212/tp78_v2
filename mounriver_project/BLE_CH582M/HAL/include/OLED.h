@@ -69,6 +69,8 @@
   void OLED_Clr(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
   void OLED_Fill(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
   uint8_t OLED_Midx(uint8_t length, uint8_t xstart, uint8_t xend);
+  void OLED_Set_Scroll_ENA(uint8_t is_enable);
+  void OLED_Scroll(uint8_t h_y0, uint8_t h_y1, uint8_t v_ystart, uint8_t v_len, uint8_t frame, uint8_t scroll_offset, uint8_t dir);
   void HAL_OLED_Init(void);
 
 #endif

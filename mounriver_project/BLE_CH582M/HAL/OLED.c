@@ -383,11 +383,54 @@ inline uint8_t OLED_Midx(uint8_t length, uint8_t xstart, uint8_t xend)
 	return xstart + (xend - xstart - length * w) / 2;
 }
 
-/**
-  * @brief  初始化SSD1306
-  * @param  无
-  * @retval 无
-  */
+/*******************************************************************************
+* Function Name  : OLED_Set_Scroll_ENA
+* Description    : 设置OLED是否使能滚屏
+* Input          : 0 - 失能; 1 - 使能
+* Return         : None
+*******************************************************************************/
+void OLED_Set_Scroll_ENA(uint8_t is_enable)
+{
+  if (is_enable) {
+    OLED_WR_Byte(0x2F, OLED_CMD);
+  } else {
+    OLED_WR_Byte(0x2E, OLED_CMD);
+  }
+}
+
+/*******************************************************************************
+* Function Name  : OLED_Scroll
+* Description    : 设置OLED滚屏
+* Input          : h_y0 - 水平滚动起始页地址; h_y1 - 水平滚动终止页地址;
+*                  v_ystart - 垂直滚动起始点阵(0~64); v_len - 垂直滚动长度(0~64);
+*                  frame - 帧单位; scroll_offset - 滚动偏移; dir - 方向(0表示向左, 1表示向右)
+* Return         : None
+*******************************************************************************/
+void OLED_Scroll(uint8_t h_y0, uint8_t h_y1, uint8_t v_ystart, uint8_t v_len,
+                 uint8_t frame, uint8_t scroll_offset, uint8_t dir)
+{
+  OLED_WR_Byte(0x2E, OLED_CMD);   // 停止滚动
+
+  OLED_WR_Byte(0xA3, OLED_CMD);
+  OLED_WR_Byte(v_ystart, OLED_CMD);
+  OLED_WR_Byte(v_len, OLED_CMD);
+
+  OLED_WR_Byte(dir ? 0x29 : 0x2A, OLED_CMD);
+  OLED_WR_Byte(0x00, OLED_CMD);
+  OLED_WR_Byte(h_y0 & 0x7, OLED_CMD);
+  OLED_WR_Byte(frame & 0x7, OLED_CMD);
+  OLED_WR_Byte(h_y1 & 0x7, OLED_CMD);
+  OLED_WR_Byte(scroll_offset, OLED_CMD);
+
+  OLED_WR_Byte(0x2F, OLED_CMD);   // 启用滚动
+}
+
+/*******************************************************************************
+* Function Name  : HAL_OLED_Init
+* Description    : 初始化SSD1306
+* Input          : None
+* Return         : None
+*******************************************************************************/
 void HAL_OLED_Init(void)
 { 	
   //IO

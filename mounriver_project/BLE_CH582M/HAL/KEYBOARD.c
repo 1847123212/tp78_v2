@@ -156,7 +156,7 @@ UINT8 KEYBOARD_Custom_Function( void )
 {
   static uint8_t Fn_Mode = 0;
   static uint8_t last_state = 0;
-  static uint8_t Fn_cnt = 0;  // 4/2/1/1 bit for Reset/ChangeKey/SaveDevices/Reserve
+  static uint8_t Fn_cnt = 0;  // 4/2/1/1 bit for Reset/ChangeKey/SaveDevices/Reserved
   static uint8_t src_key = 0, dst_key = 0;
   if ( Fn_state != 0 && Keyboarddat->Key2 == KEY_None ) { // 按下Fn+1个键或者只有Fn键
     last_state = 1;
@@ -248,6 +248,9 @@ UINT8 KEYBOARD_Custom_Function( void )
           KEYBOARD_Reset( );
           OLED_UI_add_SHOWINFO_task("Reset OK!");
           OLED_UI_add_CANCELINFO_delay_task(100);
+        } else if ( Fn_cnt >= 0x30 ) {
+          OLED_UI_add_SHOWINFO_task("%d/5 Reset", Fn_cnt >> 4);
+          OLED_UI_add_CANCELINFO_delay_task(50);
         }
         break;
       case Fn_Mode_ChangeKey:
@@ -296,8 +299,12 @@ UINT8 KEYBOARD_Custom_Function( void )
           LED_Change_flag = 1;
           led_style_func = WS2812_Style_Custom; // 彩蛋背光
           Snake_Init();
+          OLED_UI_show_version(1);  // 显示版本信息
+          PaintedEggMode = TRUE;
+        } else {
+          OLED_UI_show_version(0);  // 取消显示版本信息
+          PaintedEggMode = FALSE;
         }
-        PaintedEggMode = !PaintedEggMode;
         break;
       case Fn_Mode_DisEnableBLE:
         Fn_Mode = Fn_Mode_None; // Fn+波浪号关闭/开启蓝牙
@@ -338,31 +345,41 @@ UINT8 KEYBOARD_Custom_Function( void )
       case Fn_Mode_LED_Style1:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
+#ifdef OLED_0_91
         OLED_UI_add_SHOWSTRING_task(20, 1, "S0");
+#endif
         led_style_func = WS2812_Style_Off;  // Fn+1 - 关闭背光
         break;
       case Fn_Mode_LED_Style2:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
+#ifdef OLED_0_91
         OLED_UI_add_SHOWSTRING_task(20, 1, "S1");
+#endif
         led_style_func = WS2812_Style_Breath;  // Fn+2 - 背光使用呼吸灯模式
         break;
       case Fn_Mode_LED_Style3:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
+#ifdef OLED_0_91
         OLED_UI_add_SHOWSTRING_task(20, 1, "S2");
+#endif
         led_style_func = WS2812_Style_Waterful;  // Fn+3 - 背光使用流水灯模式
         break;
       case Fn_Mode_LED_Style4:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
+#ifdef OLED_0_91
         OLED_UI_add_SHOWSTRING_task(20, 1, "S3");
+#endif
         led_style_func = WS2812_Style_Touch;  // Fn+4 - 背光使用触控呼吸灯模式
         break;
       case Fn_Mode_LED_Style5:
         Fn_Mode = Fn_Mode_None;
         LED_Change_flag = 1;
+#ifdef OLED_0_91
         OLED_UI_add_SHOWSTRING_task(20, 1, "S4");
+#endif
         led_style_func = WS2812_Style_Rainbow;  // Fn+5 - 背光使用彩虹灯模式
         break;
       case Fn_Mode_GiveUp:
@@ -417,7 +434,9 @@ void KEYBOARD_Detection( void )
     if (KeyArr_ChangeTimes > 0 && KeyArr_ChangeTimes <= MAX_CHANGETIMES) {  // 进入CapsLock键盘布局改变计数等待
         if (KeyArr_ChangeTimes == MAX_CHANGETIMES) { // 计数值到达MAX_CHANGETIMES改变键盘布局
             KeyArr_Ptr = Extra_CustomKey;
+#ifdef OLED_0_91
             OLED_UI_add_SHOWSTRING_task(2, 1, "L2");
+#endif
         }
         ++KeyArr_ChangeTimes; // 键盘计数值递增
     } else if (press_Capslock) {  // CapsLock被按下
@@ -472,7 +491,9 @@ void KEYBOARD_Detection( void )
                 if (CustomKey[current_colum][current_row] == KEY_CapsLock) {  // 弹起大小写键离开Extra_CustomKey层
                     if (KeyArr_ChangeTimes > MAX_CHANGETIMES) {
                         KeyArr_Ptr = CustomKey;
+#ifdef OLED_0_91
                         OLED_UI_add_SHOWSTRING_task(2, 1, "L1");
+#endif
                     }
                     if (press_NormalKey == FALSE || KeyArr_ChangeTimes <= MAX_CHANGETIMES) {
                         if (KEYBOARD_data_index < 8) {
@@ -526,6 +547,7 @@ uint8_t KEYBOARD_EnterPasskey( uint32_t* key )
       }
   } else if ( idx == 6 ) {  // 最后一个按键是Enter则结束
       if ( Keyboarddat->Key1 == KEY_ENTER ) {
+          OLED_Set_Scroll_ENA(1);
           OLED_PRINT("Send!");
           OLED_UI_add_CANCELINFO_delay_task(100);
           *key = passkey;

@@ -64,6 +64,9 @@
 /*********************************************************************
  * ƒ¨»œ≈‰÷√÷µ
  */
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION            "V2.0.0"
+#endif
 #ifndef BLE_MAC
 #define BLE_MAC											FALSE
 #endif
@@ -89,7 +92,7 @@
 #define HAL_PS2                     FALSE         // PS/2–°∫Ïµ„
 #endif
 #ifndef HAL_KEYBOARD
-#define HAL_KEYBOARD                TRUE          // º¸≈Ã
+#define HAL_KEYBOARD                FALSE          // º¸≈Ã
 #endif
 #ifndef HAL_OLED
 #define HAL_OLED                    TRUE          // OLED

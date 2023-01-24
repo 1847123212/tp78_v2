@@ -196,7 +196,7 @@ __attribute__((weak)) void SW_PaintedEgg_Process(void)
       }
     }
   }
-  if (++EP_counter > 50) {  // 50次事件更新一次
+  if (++EP_counter > 50) {  // 50次事件更新一次(控制snake速度)
     EP_counter = 0;
     MoveSnake();
   }
@@ -212,14 +212,30 @@ __attribute__((weak)) void SW_OLED_Capslock_Process(void)
 {
   if ( USB_Ready && priority_USB && CapsLock_LEDOn_state != USB_CapsLock_LEDOn ) {
     CapsLock_LEDOn_state = USB_CapsLock_LEDOn;
+#ifdef OLED_0_91
     OLED_UI_ShowCapslock(56, 1, CapsLock_LEDOn_state);
+#endif
   } else if ( BLE_Ready && !priority_USB && CapsLock_LEDOn_state != BLE_CapsLock_LEDOn ) {
     CapsLock_LEDOn_state = BLE_CapsLock_LEDOn;
+#ifdef OLED_0_91
     OLED_UI_ShowCapslock(56, 1, CapsLock_LEDOn_state);
+#endif
   } else if ( RF_Ready && !priority_USB && CapsLock_LEDOn_state != RF_CapsLock_LEDOn ) {
     CapsLock_LEDOn_state = RF_CapsLock_LEDOn;
+#ifdef OLED_0_91
     OLED_UI_ShowCapslock(56, 1, CapsLock_LEDOn_state);
+#endif
+  } else {
+    return;
   }
+#ifdef OLED_0_66
+  if (CapsLock_LEDOn_state) {
+    OLED_UI_slot_add((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_CAPSLOCK_IDX]);
+  } else {
+    OLED_UI_slot_delete((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_CAPSLOCK_IDX]);
+  }
+  OLED_UI_add_default_task(OLED_UI_FLAG_DRAW_SLOT);
+#endif
 }
 
 /*******************************************************************************
@@ -232,25 +248,69 @@ __attribute__((weak)) void SW_OLED_UBStatus_Process(void)
 {
   if (connection_status[0] != USB_Ready) {
     connection_status[0] = USB_Ready;
-    if ( USB_Ready ) OLED_UI_add_SHOWSTRING_task(8, 0, "USB");
-    else OLED_UI_add_SHOWSTRING_task(8, 0, "   ");
+    if ( USB_Ready ) {
+#ifdef OLED_0_91
+      OLED_UI_add_SHOWSTRING_task(8, 0, "USB");
+#endif
+#ifdef OLED_0_66
+      OLED_UI_slot_add((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX]);
+#endif
+    } else {
+#ifdef OLED_0_91
+      OLED_UI_add_SHOWSTRING_task(8, 0, "   ");
+#endif
+#ifdef OLED_0_66
+      OLED_UI_slot_delete((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX]);
+#endif
+    }
     if ( USB_Ready ^ BLE_Ready ) priority_USB = USB_Ready;
     // 同时出现USB和蓝牙/RF时进行显示
     if ( USB_Ready && (BLE_Ready || RF_Ready) ) {
+#ifdef OLED_0_91
       OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+#endif
+#ifdef OLED_0_66
+      if ( priority_USB ) {
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX]);
+      } else if ( BLE_Ready ) {
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_BLE_UNCONNECT_IDX + DeviceAddress[5]],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_BLE_UNCONNECT_IDX + DeviceAddress[5]]);
+      } else {  // RF_Ready
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_RF_IDX],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_RF_IDX]);
+      }
+#endif
     } else {
+#ifdef OLED_0_91
       OLED_UI_ShowOK(26, 0, FALSE);
       OLED_UI_ShowOK(56, 0, FALSE);
+#endif
     }
+#ifdef OLED_0_66
+    OLED_UI_add_default_task(OLED_UI_FLAG_DRAW_SLOT);
+#endif
   } else if (connection_status[1] != BLE_Ready) {
     connection_status[1] = BLE_Ready;
 //    HalLedSet(HAL_LED_1, BLE_Ready);
-    if ( BLE_Ready ) OLED_UI_add_SHOWSTRING_task(38, 0, "BLE");
-    else {
+    if ( BLE_Ready ) {
+#ifdef OLED_0_91
+      OLED_UI_add_SHOWSTRING_task(38, 0, "BLE");
+#endif
+#ifdef OLED_0_66
+      OLED_UI_slot_add((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_BLE_UNCONNECT_IDX + DeviceAddress[5]]);
+#endif
+    } else {
+#ifdef OLED_0_91
       OLED_UI_add_SHOWSTRING_task(38, 0, "   ");
+#endif
+#ifdef OLED_0_66
+      OLED_UI_slot_delete((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_BLE_UNCONNECT_IDX + DeviceAddress[5]]);
+#endif
       if ( EnterPasskey_flag == TRUE ) {  // 打断输入配对状态
         EnterPasskey_flag = FALSE;
         BLE_Passkey = 0;
+        OLED_Set_Scroll_ENA(1);
         OLED_UI_add_SHOWINFO_task("Close!");
         OLED_UI_add_CANCELINFO_delay_task(100);
       }
@@ -258,23 +318,68 @@ __attribute__((weak)) void SW_OLED_UBStatus_Process(void)
     if ( USB_Ready ^ BLE_Ready ) priority_USB = USB_Ready;
     // 同时出现USB和蓝牙时进行显示
     if ( USB_Ready && BLE_Ready ) {
+#ifdef OLED_0_91
       OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+#endif
+#ifdef OLED_0_66
+      if ( priority_USB ) {
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX]);
+      } else {
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_BLE_UNCONNECT_IDX + DeviceAddress[5]],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_BLE_UNCONNECT_IDX + DeviceAddress[5]]);
+      }
+#endif
     } else {
+#ifdef OLED_0_91
       OLED_UI_ShowOK(26, 0, FALSE);
       OLED_UI_ShowOK(56, 0, FALSE);
+#endif
     }
+#ifdef OLED_0_66
+    OLED_UI_add_default_task(OLED_UI_FLAG_DRAW_SLOT);
+#endif
   } else if (connection_status[2] != RF_Ready) {
     connection_status[2] = RF_Ready;
-    if ( RF_Ready ) OLED_UI_add_SHOWSTRING_task(41, 0, "RF");
-    else OLED_UI_add_SHOWSTRING_task(41, 0, "  ");
+    if ( RF_Ready ) {
+#ifdef OLED_0_91
+      OLED_UI_add_SHOWSTRING_task(41, 0, "RF");
+#endif
+#ifdef OLED_0_66
+      OLED_UI_slot_add((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_RF_IDX]);
+#endif
+    } else {
+#ifdef OLED_0_91
+      OLED_UI_add_SHOWSTRING_task(41, 0, "  ");
+#endif
+#ifdef OLED_0_66
+      OLED_UI_slot_delete((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_RF_IDX]);
+#endif
+    }
     if ( USB_Ready ^ RF_Ready ) priority_USB = USB_Ready;
     // 同时出现USB和RF时进行显示
     if ( USB_Ready && RF_Ready ) {
+#ifdef OLED_0_91
       OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
+#endif
+#ifdef OLED_0_66
+      if ( priority_USB ) {
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_USB_IDX]);
+      } else {
+        OLED_UI_slot_active((uint8_t*)UI_Slot_Icon[OLED_UI_ICON_RF_IDX],
+                            (uint8_t*)UI_Slot_Icon[OLED_UI_ICON_RF_IDX]);
+      }
+#endif
     } else {
+#ifdef OLED_0_91
       OLED_UI_ShowOK(26, 0, FALSE);
       OLED_UI_ShowOK(56, 0, FALSE);
+#endif
     }
+#ifdef OLED_0_66
+    OLED_UI_add_default_task(OLED_UI_FLAG_DRAW_SLOT);
+#endif
   }
 }
 
@@ -293,8 +398,8 @@ __attribute__((weak)) void HW_Battery_Process(void)
   }
   if ( BAT_chrg != BAT_IS_CHARGING ) {  // 判断充电信号
     BAT_chrg = BAT_IS_CHARGING;
-    if ( BAT_chrg ) OLED_DrawBMP(72, 0, 81, 4, (uint8_t*)ChargeBattery);
-    else OLED_Clr(72, 0, 81, 4);
+    if ( BAT_chrg ) OLED_UI_add_default_task(OLED_UI_FLAG_BAT_CHARGE);
+    else OLED_UI_add_default_task(OLED_UI_FLAG_BAT_CLR_CHARGE);
   }
 #endif
   BATTERY_DMA_ENABLE( );  // DMA使能
@@ -665,6 +770,9 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
   {
     if (++idle_cnt >= IDLE_MAX_PERIOD) {  // 进入低功耗模式
       idle_cnt = 0;
+#ifdef HAL_OLED
+      OLED_WR_Byte(0xAE, OLED_CMD);  // display off
+#endif
       GotoLowpower(shutdown_mode);
     }
     tmos_start_task( halTaskID, SYST_EVENT, MS1_TO_SYSTEM_TIME(500) ); // 500ms周期
@@ -734,7 +842,7 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
   if(events & HAL_REG_INIT_EVENT)
   {
 #if(defined BLE_CALIBRATION_ENABLE) && (BLE_CALIBRATION_ENABLE == TRUE) // 校准任务，单次校准耗时小于10ms
-    BLE_RegInit();                                                  // 校准RF
+    BLE_RegInit();  // 校准RF
 #if(CLK_OSC32K)
     Lib_Calibration_LSI(); // 校准内部RC
 #endif
@@ -837,20 +945,22 @@ void HAL_Init()
 #endif
   PRINT("%s\n", debug_info);
   /******* 初始化OLED UI *******/
+  FLASH_Read_DeviceID();
+#ifdef OLED_0_96
   OLED_ShowString(2, 1, "L1");
   OLED_ShowChar(20, 1, 'S');
   OLED_ShowNum(26, 1, FLASH_Read_LEDStyle( ), 1);
   OLED_ShowChar(38, 1, 'D');
-  FLASH_Read_DeviceID();
   OLED_ShowNum(44, 1, DeviceAddress[5], 1);
   OLED_UI_ShowCapslock(56, 1, FALSE);
-  OLED_DrawBMP(91, 0, 91 + 32, 3, (uint8_t*)EmptyBattery);  // 绘制空电池
-//  debug_info[7] = '\0';
+#endif
+  OLED_UI_draw_empty_battery();  // 绘制空电池
+  OLED_Scroll(7, 7, 24, 16, 2, 1, 0);    // 128 FRAMES
   { // 限时打印
     OLED_UI_add_SHOWINFO_task("%s", debug_info);
     OLED_UI_add_CANCELINFO_delay_task(100);
+//    OLED_UI_show_version(1);
   }
-  tmos_start_task( halTaskID, HAL_TEST_EVENT, 10 );  // test 事件
 //  tmos_start_task( halTaskID, HAL_TEST_EVENT, 1600 );    // 添加测试任务
 }
 

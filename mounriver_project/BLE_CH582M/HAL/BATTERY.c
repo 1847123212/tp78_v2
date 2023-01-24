@@ -13,7 +13,7 @@
 __attribute__((aligned(2))) UINT16 BAT_abcBuff[ADC_MAXBUFLEN];
 UINT32 BAT_adcVal = 0;
 BOOL BAT_chrg = FALSE;
-static UINT32 BAT_adcHistory = 0;
+UINT32 BAT_adcHistory = 0;
 static signed short RoughCalib_Value = 0;
 
 /*******************************************************************************
@@ -89,18 +89,26 @@ void BATTERY_ADC_Calculation( void )
 
 /*******************************************************************************
 * Function Name  : BATTERY_ADC_GetLevel
-* Description    : 获取电池ADC等级(1:0%~25%, 2:25%~50%, 3:50%~75%, 4:75%~100%, 0和5代表超出范围)
+* Description    : 获取电池ADC等级
 * Input          : ADC值
-* Return         : 0/1/2/3/4/5
+* Return         : 电量等级
 *******************************************************************************/
 static UINT8 BATTERY_ADC_GetLevel( UINT32 adc_val )
 {
+#ifdef OLED_0_91
   if ( adc_val < BAT_MINADCVAL ) return 0;
-  else if ( adc_val < BAT_25PERCENT_VAL ) return 1;
-  else if ( adc_val < BAT_50PERCENT_VAL ) return 2;
-  else if ( adc_val < BAT_75PERCENT_VAL ) return 3;
-  else if ( adc_val < BAT_MAXADCVAL ) return 4;
+  else if ( adc_val < BAT_20PERCENT_VAL ) return 1;
+  else if ( adc_val < BAT_40PERCENT_VAL ) return 2;
+  else if ( adc_val < BAT_60PERCENT_VAL ) return 3;
+  else if ( adc_val < BAT_80PERCENT_VAL ) return 4;
   else return 5;
+#endif
+#ifdef OLED_0_66
+  if ( adc_val < BAT_MINADCVAL ) return 0;
+  else if ( adc_val < BAT_33PERCENT_VAL ) return 1;
+  else if ( adc_val < BAT_67PERCENT_VAL ) return 2;
+  else return 3;
+#endif
 }
 
 /*******************************************************************************
@@ -116,28 +124,7 @@ void BATTERY_DrawBMP( void )
   UINT8 BAT_level = BATTERY_ADC_GetLevel(BAT_adcVal);
   BOOL isFloating = ABS((long)BAT_adcHistory - (long)BAT_adcVal) >= BAT_FLOATING_VAL;
   if (BATTERY_ADC_GetLevel(BAT_adcHistory) != BAT_level) { // 电量等级变化
-    OLED_DrawBMP(BMP_StartX, 0, BMP_StartX + 32, 3, (uint8_t*)EmptyBattery);  // 绘制空电池
-    OLED_Set_Pos(BMP_StartX + 2, 0);
-    for (i = 0; i < BAT_level; i++) { // 绘制电量(1)
-      OLED_WR_Byte(0x10, OLED_DATA);
-      for (j = 0; j < 4; j++) {
-        OLED_WR_Byte(0xD0, OLED_DATA);
-      }
-    }
-    OLED_Set_Pos(BMP_StartX + 2, 1);
-    for (i = 0; i < BAT_level; i++) { // 绘制电量(2)
-      OLED_WR_Byte(0x00, OLED_DATA);
-      for (j = 0; j < 4; j++) {
-        OLED_WR_Byte(0xFF, OLED_DATA);
-      }
-    }
-    OLED_Set_Pos(BMP_StartX + 2, 2);
-    for (i = 0; i < BAT_level; i++) { // 绘制电量(下半部分)
-      OLED_WR_Byte(0x08, OLED_DATA);
-      for (j = 0; j < 4; j++) {
-        OLED_WR_Byte(0x0B, OLED_DATA);
-      }
-    }
+    OLED_UI_add_default_task(OLED_UI_FLAG_BAT_LEVEL_1 + BAT_level);
   }
   // 无论电量等级是否变化都给出电量是否浮动
   if ( isFloating ) {
