@@ -9,7 +9,7 @@
 
 #include "HAL.h"
 
-__attribute__((aligned(4))) UINT32 LED_DMA_Buffer[LED_Number*24 + 42] = { TIMING_RESET };  // LED的PWM脉冲翻转计数值缓冲区，RESET时间为42*1.25us
+__attribute__((aligned(4))) UINT32 LED_DMA_Buffer[LED_Number*24 + RESET_FRAME_SIZE] = { TIMING_RESET };  // LED的PWM脉冲翻转计数值缓冲区，RESET时间为42*1.25us
 UINT8 LED_BYTE_Buffer[LED_Number][3] = { 0 };
 WS2812_Style_Func led_style_func = WS2812_Style_Off;  // 默认背光函数
 static uint8_t style_dir = 0;
@@ -86,7 +86,7 @@ void WS2812_PWM_Init( void )
   WS2812_Style_Off( );
 
 #else
-  // 初始化 PB14 输出PW''M
+  // 初始化 PB14 输出PWM
   WS2812_GPIO_(ModeCfg)( WS2812_Pin, GPIO_ModeOut_PP_5mA );    // PB14 - PWM10
   PWMX_CLKCfg( 1 );                   // cycle = 1/Fsys = 1/60us
   PWMX_CycleCfg( PWMX_Cycle_64 );     // 周期T = 64*cycle = 1.067us ~ 1.25us +- 600ns
@@ -337,6 +337,11 @@ void WS2812_Send( void )
     led_style_func( ); // 调用变化函数
   }
 
-  TMR1_DMACfg( ENABLE, (UINT16) (UINT32) LED_DMA_Buffer, (UINT16) (UINT32) (LED_DMA_Buffer + LED_Number*24 + 42), Mode_Single );  // 启用DMA转换，从内存到外设
+  { // WCH CH582M bug: 不重启定时器发送PWM+DMA偶现第一个非空Byte丢失
+    TMR1_Disable();
+    TMR1_PWMActDataWidth(0);
+    TMR1_Enable();
+  }
+  TMR1_DMACfg( ENABLE, (UINT16) (UINT32) LED_DMA_Buffer, (UINT16) (UINT32) (LED_DMA_Buffer + LED_Number*24 + RESET_FRAME_SIZE), Mode_Single );  // 启用DMA转换，从内存到外设
 }
 

@@ -10,17 +10,18 @@
   #define __OLED_UI_H
 
   #define OLED_UI_TASK_MAX          5     // UI最大普通任务数
-  #define OLED_UI_DELAY_TASK_MAX    2     // UI最大延迟任务数
-  #define OLED_UI_STR_LEN_MAX       19    // UI打印字符串最长字符数
-  #define OLED_UI_MAX_SLOT          3     // UI槽的最多显示个数
+  #define OLED_UI_DELAY_TASK_MAX    3     // UI最大延迟任务数
+  #define OLED_UI_STR_LEN_MAX       17    // UI打印字符串最长字符数
+  #define OLED_UI_MAX_SLOT          4     // UI槽的最多显示个数
+  #define OLED_UI_MENU_MAX_LEN      3     // UI菜单每级最多选项个数(暂时不支持超过OLED屏幕显示范围)
 
   #define OLED_UI_HIS_LEN           10                    // 保存OLED打印历史条数
   #define OLED_UI_HIS_DLEN          OLED_UI_STR_LEN_MAX   // 每条OLED打印历史长度
 
-  #define OLED_UI_ICON_WIDTH        11
+  #define OLED_UI_ICON_WIDTH        10
   #define OLED_UI_ICON_HEIGHT       2     // units: page
 
-  #define OLED_TASK_PERIOD          30    // units: 1ms
+  #define OLED_FRESH_RATE           30    // uints: 1Hz
 
   typedef enum {
     OLED_UI_FLAG_DEFAULT = 0,
@@ -31,6 +32,9 @@
     OLED_UI_FLAG_CANCEL_INFO,
     OLED_UI_FLAG_DRAW_BMP,
     OLED_UI_FLAG_DRAW_SLOT,
+    OLED_UI_FLAG_IDLE_DRAW,
+    OLED_UI_FLAG_CTL_STOP_SCOLL,
+    OLED_UI_FLAG_SMOOTH_SELECT,
     /* only for normal task */
     OLED_UI_FLAG_BAT_CHARGE,
     OLED_UI_FLAG_BAT_CLR_CHARGE,
@@ -53,6 +57,14 @@
     OLED_UI_ICON_BLE3_IDX,
     OLED_UI_ICON_BLE4_IDX,
   }oled_ui_icon_index;
+
+  typedef enum {
+    OLED_UI_MENU_REFRESH = 0,
+    OLED_UI_SWIPE_UP,
+    OLED_UI_SWIPE_DOWN,
+    OLED_UI_SWIPE_LEFT,
+    OLED_UI_SWIPE_RIGHT,
+  }oled_ui_swipe;
 
   typedef struct {
     uint8_t x0;
@@ -90,20 +102,33 @@
     uint8_t slot_size;
   }oled_ui_slot_structure;
 
+  typedef struct oled_ui_menu_structure{
+    struct oled_ui_menu_structure* p[OLED_UI_MENU_MAX_LEN+1]; // 末位表示上级菜单指针
+    uint8_t text[OLED_UI_MENU_MAX_LEN][OLED_UI_STR_LEN_MAX];
+    uint8_t cur_idx;  // 表示实际菜单中当前选项index
+    uint8_t cur_x;  // 表示当前菜单中使用RAM的x坐标
+  }oled_ui_menu_structure;
+
+  extern uint8_t oled_fresh_rate;
+
   void OLED_UI_ShowOK(uint8_t x, uint8_t y, uint8_t s);
   void OLED_UI_ShowCapslock(uint8_t x, uint8_t y, uint8_t s);
   int OLED_UI_printf(char *pFormat, ...);
   uint8_t OLED_UI_add_task(oled_ui_data_flag flag, oled_ui_pos_len pos_len, uint8_t* addr, uint8_t* pstr);
-  int OLED_UI_add_SHOWSTRING_task(uint8_t x, uint8_t y, char *pstr, ...);
-  int OLED_UI_add_SHOWINFO_task(char *pstr, ...);
-  int OLED_UI_add_default_task(oled_ui_data_flag flag);
+  uint8_t OLED_UI_add_SHOWSTRING_task(uint8_t x, uint8_t y, char *pstr, ...);
+  uint8_t OLED_UI_add_SHOWINFO_task(char *pstr, ...);
+  uint8_t OLED_UI_add_default_task(oled_ui_data_flag flag);
   uint8_t OLED_UI_add_delay_task(oled_ui_data_flag flag, oled_ui_pos_len pos_len, uint8_t* addr, uint8_t* pstr, uint32_t count);
+  uint8_t OLED_UI_add_default_delay_task(oled_ui_data_flag flag, uint32_t count);
   uint8_t OLED_UI_add_CANCELINFO_delay_task(uint32_t count);
   uint8_t OLED_UI_slot_add(uint8_t* p);
   uint8_t OLED_UI_slot_delete(uint8_t *p);
   uint8_t OLED_UI_slot_active(uint8_t *old_p, uint8_t *new_p);
-  void OLED_UI_draw_empty_battery(void);
   void OLED_UI_show_version(uint8_t ena);
+  void OLED_UI_draw_empty_battery(void);
+  void OLED_UI_draw_menu(oled_ui_swipe fresh_type);
+  void OLED_UI_smooth_select_cfg(uint8_t* str0, uint8_t* str1, uint8_t y0, uint8_t y1);
+  void OLED_UI_idle(uint8_t is_entrying);
   void OLED_UI_draw_thread_callback(void);
 
 #endif

@@ -2,7 +2,7 @@
  * File Name          : OLED_UI.c
  * Author             : ChnMasterOG
  * Version            : V1.0
- * Date               : 2022/12/29
+ * Date               : 2023/1/28
  * Description        : OLED UI接口
  * SPDX-License-Identifier: GPL-3.0
  *******************************************************************************/
@@ -14,8 +14,38 @@ static oled_ui_task_structure oled_ui_task = { 0 };
 static oled_ui_delay_task_structure oled_ui_delay_task = { 0 };
 static oled_ui_slot_structure oled_ui_slot = { 0 };
 
+static oled_ui_menu_structure test_menu = {
+  .text[0] = "Test0",
+  .text[1] = "Test1",
+  .text[2] = "Test2",
+  .cur_idx = 0,
+  .cur_x = 64,
+};
+static oled_ui_menu_structure main_menu = {
+  .text[0] = "StatusA",
+  .text[1] = "StatusB",
+  .text[2] = "StatusC",
+  .p[3] = &test_menu,
+  .cur_idx = 0,
+  .cur_x = 0,
+};
+
+uint8_t oled_fresh_rate = OLED_FRESH_RATE;  // OLED刷新率控制
+
 uint8_t oled_printf_history[OLED_UI_HIS_LEN][OLED_UI_HIS_DLEN+1] = {};  // 存放OLED_printf的历史记录
 static uint8_t oled_printf_history_idx = 0;  // 存放OLED打印历史的下标
+
+static uint8_t oled_ui_entry_idle_frame = 0;
+static oled_ui_menu_structure *cur_menu_p = &main_menu; // 当前菜单指向的位置
+
+#ifdef OLED_0_66
+static uint8_t oled_smooth_select_buffer[2 * 64];
+static uint8_t oled_smooth_select_str0[OLED_UI_STR_LEN_MAX];
+static uint8_t oled_smooth_select_str1[OLED_UI_STR_LEN_MAX];
+static oled_ui_pos_len oled_smooth_select_pos_len[2];
+static uint8_t oled_smooth_w_cnt = 0; // 用于选中框宽度计数
+static uint8_t oled_smooth_y_cnt = 0; // 用于选中框y滑动变化计数
+#endif
 
 /*******************************************************************************
 * Function Name  : OLED_ShowOK
@@ -27,7 +57,7 @@ void OLED_UI_ShowOK(uint8_t x, uint8_t y, uint8_t s)
 {
   uint8_t i;
   OLED_Set_Pos(x, y);
-  if (SIZE == 8) {
+  if (FONT_SIZE == 8) {
     if (s != 0) for(i = 0; i < 6; i++) OLED_WR_Byte(F6x8[92][i], OLED_DATA);
     else for(i = 0; i < 6; i++) OLED_WR_Byte(0x00, OLED_DATA);
   }
@@ -43,19 +73,19 @@ void OLED_UI_ShowCapslock(uint8_t x, uint8_t y, uint8_t s)
 {
   uint8_t i;
   OLED_Set_Pos(x, y);
-  if (SIZE == 8) {
+  if (FONT_SIZE == 8) {
     if (s != 0) for(i = 0; i < 6; i++) OLED_WR_Byte(F6x8[93][i], OLED_DATA);
     else for(i = 0; i < 6; i++) OLED_WR_Byte(F6x8[94][i], OLED_DATA);
   }
 }
 
 /*******************************************************************************
-* Function Name  : OLED_TP78Info
+* Function Name  : OLED_UI_TP78Info
 * Description    : TP78消息显示
 * Input          : *chr - 要显示的字符串
 * Return         : None
 *******************************************************************************/
-static void OLED_TP78Info(uint8_t *chr)
+static void OLED_UI_TP78Info(uint8_t *chr)
 {
 #if defined(OLED_0_91) || defined(OLED_0_66)
   // 清空原有信息
@@ -85,7 +115,7 @@ int OLED_UI_printf(char *pFormat, ...)
   res = vsprintf((char*)pStr, pFormat, ap);
   va_end(ap);
 
-  OLED_TP78Info(pStr);
+  OLED_UI_TP78Info(pStr);
 
   /* 记录至历史 */
   if (strlen(pStr) > OLED_UI_HIS_DLEN) { // 截取长度
@@ -137,7 +167,7 @@ uint8_t OLED_UI_add_task(oled_ui_data_flag flag, oled_ui_pos_len pos_len, uint8_
 *                  pstr - pointer of string, and parameterization.
 * Return         : 0 - success, 1 - failed
 *******************************************************************************/
-int OLED_UI_add_SHOWSTRING_task(uint8_t x, uint8_t y, char *pstr, ...)
+uint8_t OLED_UI_add_SHOWSTRING_task(uint8_t x, uint8_t y, char *pstr, ...)
 {
   char pStr[OLED_UI_STR_LEN_MAX] = {'\0'};
   va_list ap;
@@ -170,7 +200,7 @@ int OLED_UI_add_SHOWSTRING_task(uint8_t x, uint8_t y, char *pstr, ...)
 * Input          : pstr - pointer of string, and parameterization.
 * Return         : 0 - success, 1 - failed
 *******************************************************************************/
-int OLED_UI_add_SHOWINFO_task(char *pstr, ...)
+uint8_t OLED_UI_add_SHOWINFO_task(char *pstr, ...)
 {
   char pStr[OLED_UI_STR_LEN_MAX] = {'\0'};
   va_list ap;
@@ -201,7 +231,7 @@ int OLED_UI_add_SHOWINFO_task(char *pstr, ...)
 * Input          : flag - task flag;
 * Return         : 0 - success, 1 - failed
 *******************************************************************************/
-int OLED_UI_add_default_task(oled_ui_data_flag flag)
+uint8_t OLED_UI_add_default_task(oled_ui_data_flag flag)
 {
   oled_ui_pos_len pos_len = {.x = 0, .y = 0, .len = 0};
   return OLED_UI_add_task(flag, pos_len, NULL, NULL);
@@ -214,12 +244,14 @@ int OLED_UI_add_default_task(oled_ui_data_flag flag)
 *                  pos_len - new task pos and len;
 *                  addr - pointer of BMP;
 *                  pstr - pointer of string;
-*                  count - the delay counter.
+*                  count - the delay counter(uints: ms).
 * Return         : 0 - success, 1 - failed
 *******************************************************************************/
 uint8_t OLED_UI_add_delay_task(oled_ui_data_flag flag, oled_ui_pos_len pos_len, uint8_t* addr, uint8_t* pstr, uint32_t count)
 {
   uint8_t i;
+
+  count = count / oled_fresh_rate;  // transfer to fresh cycle
 
   for (i = 0; i < OLED_UI_DELAY_TASK_MAX; i++) {
     if (oled_ui_delay_task.oled_ui_draw[i].flag == OLED_UI_FLAG_DEFAULT) {
@@ -238,15 +270,29 @@ uint8_t OLED_UI_add_delay_task(oled_ui_data_flag flag, oled_ui_pos_len pos_len, 
 }
 
 /*******************************************************************************
+* Function Name  : OLED_UI_add_default_delay_task
+* Description    : OLED_UI添加默认延迟任务
+* Input          : flag - task flag; count - the delay counter(uints: ms).
+* Return         : 0 - success, 1 - failed
+*******************************************************************************/
+uint8_t OLED_UI_add_default_delay_task(oled_ui_data_flag flag, uint32_t count)
+{
+  oled_ui_pos_len pos_len = {.x = 0, .y = 0, .len = 0};
+  return OLED_UI_add_delay_task(flag, pos_len, NULL, NULL, count);
+}
+
+/*******************************************************************************
 * Function Name  : OLED_UI_add_CANCELINFO_delay_task
 * Description    : OLED_UI添加清除字符串延迟任务
 * Input          : pstr - pointer of string;
-*                  count - the delay counter.
+*                  count - the delay counter(uints: ms).
 * Return         : 0 - success, 1 - failed
 *******************************************************************************/
 uint8_t OLED_UI_add_CANCELINFO_delay_task(uint32_t count)
 {
   uint8_t i;
+
+  count = count / oled_fresh_rate;  // transfer to fresh cycle
 
   for (i = 0; i < OLED_UI_DELAY_TASK_MAX; i++) {
     if (oled_ui_delay_task.oled_ui_draw[i].flag == OLED_UI_FLAG_DEFAULT) {
@@ -384,6 +430,164 @@ void OLED_UI_draw_empty_battery(void)
 }
 
 /*******************************************************************************
+* Function Name  : OLED_UI_draw_menu
+* Description    : 绘制菜单界面
+* Input          : fresh_type - 菜单更新方式
+* Return         : None
+*******************************************************************************/
+void OLED_UI_draw_menu(oled_ui_swipe fresh_type)
+{
+#ifdef OLED_0_66
+  uint8_t i;
+
+  switch (fresh_type)
+  {
+    case OLED_UI_MENU_REFRESH:  // 直接刷新
+      OLED_ShowString_f(cur_menu_p->cur_x, 2, cur_menu_p->text[0]);
+      for (i = 1; i < OLED_UI_MENU_MAX_LEN; i++) {
+        if (cur_menu_p->text[i][0] == 0) {
+          OLED_Clr(cur_menu_p->cur_x, 2 + i, OLED_WIDTH, 3 + i);
+        } else {
+          OLED_ShowString(cur_menu_p->cur_x, 2 + i, cur_menu_p->text[i]);
+        }
+      }
+      break;
+    case OLED_UI_SWIPE_UP:  // 上滑
+      if (cur_menu_p->cur_idx == 0) break;
+      OLED_UI_smooth_select_cfg(cur_menu_p->text[cur_menu_p->cur_idx], cur_menu_p->text[cur_menu_p->cur_idx - 1],
+                                cur_menu_p->cur_idx + 2, cur_menu_p->cur_idx + 1);
+      OLED_UI_add_default_delay_task(OLED_UI_FLAG_SMOOTH_SELECT, 30);
+      cur_menu_p->cur_idx--;
+      break;
+    case OLED_UI_SWIPE_DOWN:  // 下滑
+      if (cur_menu_p->cur_idx == OLED_UI_MENU_MAX_LEN - 1) break;
+      OLED_UI_smooth_select_cfg(cur_menu_p->text[cur_menu_p->cur_idx], cur_menu_p->text[cur_menu_p->cur_idx + 1],
+                                cur_menu_p->cur_idx + 2, cur_menu_p->cur_idx + 3);
+      OLED_UI_add_default_delay_task(OLED_UI_FLAG_SMOOTH_SELECT, 30);
+      cur_menu_p->cur_idx++;
+      break;
+    case OLED_UI_SWIPE_LEFT:  // 左滑
+      if (cur_menu_p->p[OLED_UI_MENU_MAX_LEN] == NULL) break;
+      cur_menu_p = cur_menu_p->p[OLED_UI_MENU_MAX_LEN];
+      OLED_UI_draw_menu(OLED_UI_MENU_REFRESH);
+      OLED_Scroll(2, 4, 7, 0, OLED_2_FRAMES, 0, OLED_SCOLL_RIGHT);
+      OLED_UI_add_default_delay_task(OLED_UI_FLAG_CTL_STOP_SCOLL, 400); // 需要调整
+      break;
+  }
+#endif
+}
+
+/*******************************************************************************
+* Function Name  : OLED_UI_smooth_select_cfg
+* Description    : UI菜单丝滑切换配置
+* Input          : str0/str1 - 起始/终止字符串; y0/y1 - 起始/终止页数
+* Return         : None
+*******************************************************************************/
+void OLED_UI_smooth_select_cfg(uint8_t* str0, uint8_t* str1, uint8_t y0, uint8_t y1)
+{
+  uint8_t len0, len1;
+
+  for (len0 = 0; str0[len0] != '\0'; len0++) {
+    oled_smooth_select_str0[len0] = str0[len0];
+  }
+  for (len1 = 0; str1[len1] != '\0'; len1++) {
+    oled_smooth_select_str1[len1] = str1[len1];
+  }
+
+  oled_smooth_select_pos_len[0].y = y0;
+  oled_smooth_select_pos_len[1].y = y1;
+  oled_smooth_select_pos_len[0].len = len0;
+  oled_smooth_select_pos_len[1].len = len1;
+  oled_smooth_w_cnt = len0 * 6;
+  oled_smooth_y_cnt = y0 < y1 ? 0 : 7;
+}
+
+/*******************************************************************************
+* Function Name  : OLED_UI_smooth_select
+* Description    : UI菜单丝滑切换选项
+* Input          : None
+* Return         : None
+*******************************************************************************/
+void OLED_UI_smooth_select(void)
+{
+#if defined(OLED_0_66) && (FONT_SIZE == 8)
+  uint8_t i, j, temp, dir;
+  uint32_t maxlen, minlen;
+
+  dir = oled_smooth_select_pos_len[0].y < oled_smooth_select_pos_len[1].y;
+  temp = dir ? ((1 << (oled_smooth_y_cnt + 1)) - 1) : ~((1 << (oled_smooth_y_cnt + 1)) - 1);
+  maxlen = MAX(oled_smooth_select_pos_len[0].len, oled_smooth_select_pos_len[1].len);
+  minlen = MIN(oled_smooth_select_pos_len[0].len, oled_smooth_select_pos_len[1].len);
+
+  for (i = 0; i < maxlen; i++) {
+    for (j = 0; j < 6; j++) {
+      if (i < oled_smooth_select_pos_len[0].len) {
+        if (i * 6 + j < oled_smooth_w_cnt) {
+          oled_smooth_select_buffer[i * 6 + j] = ((~F6x8[oled_smooth_select_str0[i] - ' '][j] & ~temp) | (F6x8[oled_smooth_select_str0[i] - ' '][j] & temp));
+        } else {
+          oled_smooth_select_buffer[i * 6 + j] = F6x8[oled_smooth_select_str0[i] - ' '][j];
+        }
+      } else {
+        if (i * 6 + j < oled_smooth_w_cnt) {
+          oled_smooth_select_buffer[i * 6 + j] = ~temp;
+        } else {
+          oled_smooth_select_buffer[i * 6 + j] = 0;
+        }
+      }
+    }
+  }
+  for (i = 0; i < maxlen; i++) {
+    for (j = 0; j < 6; j++) {
+      if (i < oled_smooth_select_pos_len[1].len) {
+        if (i * 6 + j < oled_smooth_w_cnt) {
+          oled_smooth_select_buffer[64 + i * 6 + j] = ((~F6x8[oled_smooth_select_str1[i] - ' '][j] & temp) | (F6x8[oled_smooth_select_str1[i] - ' '][j] & ~temp));
+        } else {
+          oled_smooth_select_buffer[64 + i * 6 + j] = F6x8[oled_smooth_select_str1[i] - ' '][j];
+        }
+      } else {
+        if (i * 6 + j < oled_smooth_w_cnt) {
+          oled_smooth_select_buffer[64 + i * 6 + j] = temp;
+        } else {
+          oled_smooth_select_buffer[64 + i * 6 + j] = 0;
+        }
+      }
+    }
+  }
+
+  OLED_DrawBMP(cur_menu_p->cur_x, oled_smooth_select_pos_len[0].y, 64, oled_smooth_select_pos_len[0].y + 1, oled_smooth_select_buffer);
+  OLED_DrawBMP(cur_menu_p->cur_x, oled_smooth_select_pos_len[1].y, 64, oled_smooth_select_pos_len[1].y + 1, oled_smooth_select_buffer + 64);
+
+  if ((oled_smooth_y_cnt != 8 && dir) || (oled_smooth_y_cnt != 0xFF && !dir)) {
+    if (oled_smooth_select_pos_len[0].len > oled_smooth_select_pos_len[1].len) {
+      if (dir) oled_smooth_w_cnt = oled_smooth_select_pos_len[1].len * 6 + (maxlen - minlen) * (7 - oled_smooth_y_cnt) * 6 / 8;
+      else oled_smooth_w_cnt = oled_smooth_select_pos_len[1].len * 6 + (maxlen - minlen) * oled_smooth_y_cnt * 6 / 8;
+    } else {
+      if (dir) oled_smooth_w_cnt = oled_smooth_select_pos_len[0].len * 6 + (maxlen - minlen) * (oled_smooth_y_cnt + 1) * 6 / 8;
+      else oled_smooth_w_cnt = oled_smooth_select_pos_len[0].len * 6 + (maxlen - minlen) * (8 - oled_smooth_y_cnt) * 6 / 8;
+    }
+    if (dir) oled_smooth_y_cnt++;
+    else oled_smooth_y_cnt--;
+    OLED_UI_add_default_delay_task(OLED_UI_FLAG_SMOOTH_SELECT, 30);
+  }
+#endif
+}
+
+/*******************************************************************************
+* Function Name  : OLED_UI_entry_idle
+* Description    : 进入/退出待机界面
+* Input          : is_entrying - 1进入待机界面, 0退出待机界面
+* Return         : None
+*******************************************************************************/
+void OLED_UI_idle(uint8_t is_entrying)
+{
+  oled_ui_pos_len pos_len;
+  oled_ui_entry_idle_frame = is_entrying ? 1 : 0;
+  if (is_entrying) {
+    OLED_UI_add_delay_task(OLED_UI_FLAG_IDLE_DRAW, pos_len, (uint8_t*)UI_Oled_Idle, NULL, 80);
+  }
+}
+
+/*******************************************************************************
 * Function Name  : OLED_UI_draw_thread_callback
 * Description    : OLED_UI绘图回调函数
 * Input          : None
@@ -481,6 +685,26 @@ void OLED_UI_draw_thread_callback(void)
         break;
       case OLED_UI_FLAG_DRAW_SLOT:
         OLED_UI_slot_draw();
+        break;
+      case OLED_UI_FLAG_IDLE_DRAW:
+#ifdef OLED_0_66
+        if (oled_ui_entry_idle_frame) {
+          OLED_DrawBMP(0, 2, 64, 5, oled_ui_delay_task.oled_ui_draw[i].addr);
+          OLED_UI_add_delay_task(OLED_UI_FLAG_IDLE_DRAW, oled_ui_delay_task.oled_ui_draw[i].pos_len, (uint8_t*)UI_Oled_Idle[oled_ui_entry_idle_frame], NULL, 200);
+          oled_ui_entry_idle_frame++;
+          if (oled_ui_entry_idle_frame == 8) {
+            oled_ui_entry_idle_frame = 1;
+          }
+        } else {
+          OLED_Clr(0, 2, 64, 5);
+        }
+#endif
+        break;
+      case OLED_UI_FLAG_CTL_STOP_SCOLL:
+        OLED_Set_Scroll_ENA(0);
+        break;
+      case OLED_UI_FLAG_SMOOTH_SELECT:
+        OLED_UI_smooth_select();
         break;
       default:
         continue;

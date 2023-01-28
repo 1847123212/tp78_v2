@@ -16,7 +16,8 @@ extern const unsigned char F8X16[];
 extern const unsigned char Hzk[][16];
 
 extern const unsigned char ChargeBattery[][16];
-extern const unsigned char UI_Slot_Icon[][22];
+extern const unsigned char UI_Slot_Icon[][20];
+extern const unsigned char UI_Oled_Idle[][64*3];
 
 #endif
 

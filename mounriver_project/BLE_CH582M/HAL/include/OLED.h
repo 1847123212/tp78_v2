@@ -27,7 +27,7 @@
     #define OLED_HEIGHT       5 // uints:page
   #endif
 
-  #define SIZE                8
+  #define FONT_SIZE           8
   #define XLevelL             0x00
   #define XLevelH             0x10
   #define Max_Column          128
@@ -55,6 +55,22 @@
     #define OLED_WR_Byte(dat, cmd)  OLED_SW_I2C_WR_Byte(dat, cmd)
   #endif
 
+  typedef enum {
+    OLED_5_FRAMES = 0,
+    OLED_64_FRAMES,
+    OLED_128_FRAMES,
+    OLED_256_FRAMES,
+    OLED_3_FRAMES,
+    OLED_4_FRAMES,
+    OLED_25_FRAMES,
+    OLED_2_FRAMES,
+  }OLED_FRAME_FREQUENCY;
+
+  typedef enum {
+    OLED_SCOLL_LEFT = 0,
+    OLED_SCOLL_RIGHT,
+  }OLED_SCOLL_DIRECTION;
+
   /* OLED¿ØÖÆº¯Êý */
   void OLED_SW_I2C_WR_Byte(uint8_t dat,uint8_t cmd);
   void OLED_Set_Pos(uint8_t x, uint8_t y);
@@ -64,6 +80,7 @@
   void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr);
   void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len);
   void OLED_ShowString(uint8_t x, uint8_t y, uint8_t *chr);
+  void OLED_ShowString_f(uint8_t x, uint8_t y, uint8_t *chr);
   void OLED_ShowCHinese(uint8_t x, uint8_t y, uint8_t no);
   void OLED_DrawBMP(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t* BMP);
   void OLED_Clr(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);

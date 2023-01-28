@@ -69,7 +69,8 @@ extern "C"
 #define FLASH_ADDR_RForBLE                  (10*1024+8)   // 启动默认RF模式或者BLE模式
 #define FLASH_ADDR_MPR121_ALG_Param         (10*1024+12)  // MPR121算法参数存储
 
-#define IDLE_MAX_PERIOD                     240          // idle_cnt大于该值则进入休眠，单位为500ms
+#define IDLE_MAX_PERIOD                     240           // idle_cnt大于该值则进入屏保，单位为500ms
+#define LP_MAX_PERIOD                       480           // idle_cnt大于该值则进入低功耗模式，单位为500ms
 
 #define MOTOR_PIN                           GPIO_Pin_18
 #define MOTOR_RUN()                         { GPIOB_SetBits( MOTOR_PIN ); }
@@ -113,7 +114,6 @@ extern UINT8* HIDKey;
 extern UINT8* HIDVolume;
 
 extern BOOL CP_Ready;
-extern uint32_t idle_cnt;
 extern BOOL enable_BLE;
 extern BOOL priority_USB;
 extern tmosTaskID halTaskID;

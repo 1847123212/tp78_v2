@@ -247,10 +247,10 @@ UINT8 KEYBOARD_Custom_Function( void )
           Fn_Mode = Fn_Mode_None;
           KEYBOARD_Reset( );
           OLED_UI_add_SHOWINFO_task("Reset OK!");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
         } else if ( Fn_cnt >= 0x30 ) {
           OLED_UI_add_SHOWINFO_task("%d/5 Reset", Fn_cnt >> 4);
-          OLED_UI_add_CANCELINFO_delay_task(50);
+          OLED_UI_add_CANCELINFO_delay_task(1500);
         }
         break;
       case Fn_Mode_ChangeKey:
@@ -259,7 +259,7 @@ UINT8 KEYBOARD_Custom_Function( void )
           Fn_cnt = 0;
           Fn_Mode = Fn_Mode_None;
           OLED_UI_add_SHOWINFO_task("Change OK!");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
           KEYBOARD_ChangeKey( dst_key, src_key );
         }
         break;
@@ -314,7 +314,7 @@ UINT8 KEYBOARD_Custom_Function( void )
           if ( status != SUCCESS ) OLED_UI_add_SHOWINFO_task("ERR %d", status);
           else if ( enable_BLE ) OLED_UI_add_SHOWINFO_task("BLE ENA");
           else OLED_UI_add_SHOWINFO_task("BLE DIS");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
         }
         break;
       case Fn_Mode_DisEnableTP:
@@ -322,7 +322,7 @@ UINT8 KEYBOARD_Custom_Function( void )
         enable_TP = !enable_TP;
         if ( enable_TP ) OLED_UI_add_SHOWINFO_task("TP ENA");
         else OLED_UI_add_SHOWINFO_task("TP DIS");
-        OLED_UI_add_CANCELINFO_delay_task(100);
+        OLED_UI_add_CANCELINFO_delay_task(3000);
         break;
       case Fn_Mode_PriorityUSBorBLE:  // Fn+0优先蓝牙/RF或USB切换
         Fn_Mode = Fn_Mode_None;
@@ -335,7 +335,7 @@ UINT8 KEYBOARD_Custom_Function( void )
         if ( priority_USB ) OLED_UI_add_SHOWINFO_task("PRI USB");
         else if ( !RF_Ready ) OLED_UI_add_SHOWINFO_task("PRI BLE");
         else OLED_UI_add_SHOWINFO_task("PRI RF");
-        OLED_UI_add_CANCELINFO_delay_task(100);
+        OLED_UI_add_CANCELINFO_delay_task(3000);
         break;
       case Fn_Mode_SelectDevice1 ... Fn_Mode_SelectDevice4: // 按Fn+1~4切换设备
         DeviceAddress[5] = Fn_Mode - Fn_Mode_SelectDevice1 + 1;
@@ -547,9 +547,9 @@ uint8_t KEYBOARD_EnterPasskey( uint32_t* key )
       }
   } else if ( idx == 6 ) {  // 最后一个按键是Enter则结束
       if ( Keyboarddat->Key1 == KEY_ENTER ) {
-          OLED_Set_Scroll_ENA(1);
+//          OLED_Set_Scroll_ENA(1);
           OLED_PRINT("Send!");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
           *key = passkey;
           passkey = idx = passkey_str[0] = 0;
           return 0;

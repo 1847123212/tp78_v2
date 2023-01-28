@@ -203,10 +203,10 @@ void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr)
 	c = chr - ' ';                             //得到偏移后的值(对应ASCII码)			
 	if(x > Max_Column - 1) {
 	  x = 0;
-	  if (SIZE == 16) y += 2;
+	  if (FONT_SIZE == 16) y += 2;
 	  else y++;
 	}
-	if (SIZE == 16)                            //一个字符占8列16行(2页) 一块128*64像素屏一行能显示16个字符 能显示4行
+	if (FONT_SIZE == 16)                       //一个字符占8列16行(2页) 一块128*64像素屏一行能显示16个字符 能显示4行
 	{
 		OLED_Set_Pos(x, y);	                     //开始写第一页
 			                                       //写入字符前64列(第一页先列后行)
@@ -254,12 +254,12 @@ void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len)
 		{
 			if(temp == 0)
 			{
-			  if ( SIZE == 16 ) OLED_ShowChar(x + 8 * t, y, ' ');
+			  if ( FONT_SIZE == 16 ) OLED_ShowChar(x + 8 * t, y, ' ');
 			  else OLED_ShowChar(x + 6 * t, y, ' '); //将开头为0的位略成' '
 				continue;
 			}else enshow = 1; 
 		}
-		if ( SIZE == 16 ) OLED_ShowChar(x + 8 * t, y, temp + '0');	//打印数字
+		if ( FONT_SIZE == 16 ) OLED_ShowChar(x + 8 * t, y, temp + '0');	//打印数字
 		else OLED_ShowChar(x + 6 * t, y, temp + '0'); //打印数字
 	}
 }
@@ -276,11 +276,62 @@ void OLED_ShowString(uint8_t x, uint8_t y, uint8_t *chr)
 	while(chr[j]!='\0')                         //该位不为空则打印
 	{
 		OLED_ShowChar(x, y, chr[j]);        			//从第x列第y页打印字符
-		if ( SIZE == 16 ) x += 8;                 //字宽8列 打印完跳8列
-		else x += 6;                              //字宽6列 打印完跳6列
-		if(x > 120){x = 0; y+=2;}                 //打印完2页则跳2页
-			j++;
+    if ( FONT_SIZE == 16 ) {
+      x += 8;                                 //字宽8列 打印完跳8列
+      if (x > 128 - 8) {
+        x = 0; y += 2;
+      }
+    } else {
+      x += 6;                                 //字宽6列 打印完跳6列
+      if (x > 128 - 6) {
+        x = 0; y += 1;
+      }
+    }
+    j++;
 	}
+}
+
+/*******************************************************************************
+* Function Name  : OLED_ShowString_f
+* Description    : OLED反向显示字符串
+* Input          : x, y - 横坐标和页坐标; *chr - 要显示的字符串
+* Return         : None
+*******************************************************************************/
+void OLED_ShowString_f(uint8_t x, uint8_t y, uint8_t *chr)
+{
+  uint8_t j=0;
+  unsigned char c=0,i=0;
+
+  while(chr[j] != '\0')                       //该位不为空则打印
+  {
+    c = chr[j] - ' ';                         //得到偏移后的值(对应ASCII码)
+    if(x > Max_Column - 1) {
+      x = 0;
+      if (FONT_SIZE == 16) y += 2;
+      else y++;
+    }
+    if (FONT_SIZE == 16) {                    //一个字符占8列16行(2页) 一块128*64像素屏一行能显示16个字符 能显示4行
+      OLED_Set_Pos(x, y);
+      for(i = 0; i < 8; i++) OLED_WR_Byte(~F8X16[c * 16 + i], OLED_DATA);
+      OLED_Set_Pos(x, y + 1);
+      for(i = 0; i < 8; i++) OLED_WR_Byte(~F8X16[c * 16 + i + 8], OLED_DATA);
+    } else {
+      OLED_Set_Pos(x, y);
+      for(i = 0; i < 6; i++) OLED_WR_Byte(~F6x8[c][i], OLED_DATA);
+    }
+    if ( FONT_SIZE == 16 ) {
+      x += 8;           //字宽8列 打印完跳8列
+      if (x > 128 - 8) {
+        x = 0; y += 2;
+      }
+    } else {
+      x += 6;           //字宽6列 打印完跳6列
+      if (x > 128 - 6) {
+        x = 0; y += 1;
+      }
+    }
+    j++;
+  }
 }
 
 /*******************************************************************************
@@ -378,7 +429,7 @@ void OLED_Clr(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
 *******************************************************************************/
 inline uint8_t OLED_Midx(uint8_t length, uint8_t xstart, uint8_t xend)
 {
-  uint8_t w = SIZE == 16 ? 8 : 6;
+  uint8_t w = FONT_SIZE == 16 ? 8 : 6;
 	if (length * w > xend - xstart) return 0;
 	return xstart + (xend - xstart - length * w) / 2;
 }

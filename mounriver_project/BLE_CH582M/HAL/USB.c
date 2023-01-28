@@ -549,7 +549,7 @@ void DevEP4_OUT_Deal( UINT8 l )
     pEP4_IN_DataBuf[3] = USB_ERR_LENGTH;
     { // 限时打印
       OLED_UI_add_SHOWINFO_task("[USB L ER]");
-      OLED_UI_add_CANCELINFO_delay_task(100);
+      OLED_UI_add_CANCELINFO_delay_task(3000);
     }
     DevEP4_IN_Deal( 4 );
     return;
@@ -569,7 +569,7 @@ void DevEP4_OUT_Deal( UINT8 l )
       pEP4_IN_DataBuf[1] = 'S';
       { // 限时打印
         OLED_UI_add_SHOWINFO_task("[D USB OK]");
-        OLED_UI_add_CANCELINFO_delay_task(100);
+        OLED_UI_add_CANCELINFO_delay_task(3000);
       }
       DevEP4_IN_Deal( 2 );    // 发送-成功
       break;
@@ -582,7 +582,7 @@ void DevEP4_OUT_Deal( UINT8 l )
       pEP4_IN_DataBuf[1] = 'S';
       { // 限时打印
         OLED_UI_add_SHOWINFO_task("[X USB OK]");
-        OLED_UI_add_CANCELINFO_delay_task(100);
+        OLED_UI_add_CANCELINFO_delay_task(3000);
       }
       DevEP4_IN_Deal( 2 );    // 发送-成功
       break;
@@ -593,7 +593,7 @@ void DevEP4_OUT_Deal( UINT8 l )
         pEP4_IN_DataBuf[1] = 'S';
         { // 限时打印
           OLED_UI_add_SHOWINFO_task("[L USB OK]");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
         }
         DevEP4_IN_Deal( 2 );    // 发送-成功
       } else {
@@ -601,7 +601,7 @@ void DevEP4_OUT_Deal( UINT8 l )
         pEP4_IN_DataBuf[1] = 'E';
         { // 限时打印
           OLED_UI_add_SHOWINFO_task("[L USB ER]");
-          OLED_UI_add_CANCELINFO_delay_task(300);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
         }
         pEP4_IN_DataBuf[3] = USB_DAT_INVALID; // 发送-数据不合法
         DevEP4_IN_Deal( 4 );
@@ -614,7 +614,7 @@ void DevEP4_OUT_Deal( UINT8 l )
         pEP4_IN_DataBuf[1] = 'S';
         { // 限时打印
           OLED_UI_add_SHOWINFO_task("[D USB OK]");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
         }
         DevEP4_IN_Deal( 2 );    // 发送-成功
       } else {
@@ -622,7 +622,7 @@ void DevEP4_OUT_Deal( UINT8 l )
         pEP4_IN_DataBuf[1] = 'E';
         { // 限时打印
           OLED_UI_add_SHOWINFO_task("[D USB ER]");
-          OLED_UI_add_CANCELINFO_delay_task(100);
+          OLED_UI_add_CANCELINFO_delay_task(3000);
         }
         pEP4_IN_DataBuf[3] = USB_DAT_INVALID; // 发送-数据不合法
         DevEP4_IN_Deal( 4 );
@@ -641,7 +641,7 @@ void DevEP4_OUT_Deal( UINT8 l )
       DevEP4_IN_Deal( pEP4_IN_DataBuf[0] );
       if (pEP4_OUT_DataBuf[2] == COL_SIZE - 1) { // 限时打印
         OLED_UI_add_SHOWINFO_task("[R USB RP]");
-        OLED_UI_add_CANCELINFO_delay_task(100);
+        OLED_UI_add_CANCELINFO_delay_task(3000);
       }
       break;
     default:
@@ -650,7 +650,7 @@ void DevEP4_OUT_Deal( UINT8 l )
       pEP4_IN_DataBuf[3] = USB_ERR_UNKNOWN;
       { // 限时打印
         OLED_UI_add_SHOWINFO_task("[R USB ER]");
-        OLED_UI_add_CANCELINFO_delay_task(100);
+        OLED_UI_add_CANCELINFO_delay_task(3000);
       }
       DevEP4_IN_Deal( 4 );
   }
