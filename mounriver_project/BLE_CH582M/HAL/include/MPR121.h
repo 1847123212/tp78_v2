@@ -177,8 +177,8 @@
     DIRECT_JUDGE_RIGHT,
   }alg_TouchbarDirectiion;
 
-  extern uint8_t MPR121_Cap_Mouse_Pinmux[4];
-  extern uint8_t MPR121_TouchBar_Pinmux[7];
+  extern const uint8_t MPR121_Cap_Mouse_Pinmux[4];
+  extern const uint8_t MPR121_TouchBar_Pinmux[7];
 
   extern alg_ListNode* cap_mouse_dat_head[4];
   extern alg_ListNode* cap_mouse_sts_head[1];
@@ -188,8 +188,8 @@
   extern uint8_t touchbar_data_change;
 
   void MPR121_Init(char* buf);
-  void FLASH_Read_MPR121_ALG_Parameter(void);
-  void FLASH_Write_MPR121_ALG_Parameter(void);
+  void DATAFLASH_Read_MPR121_ALG_Parameter(void);
+  void DATAFLASH_Write_MPR121_ALG_Parameter(void);
   void MPR121_ALG_Update_algListNode(alg_ListNode* p[], uint8_t index, uint16_t dat);
   void MPR121_ALG_Judge_Cap_Mouse(void);
 #if 0

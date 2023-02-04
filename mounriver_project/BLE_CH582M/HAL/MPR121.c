@@ -10,8 +10,8 @@
 #include "HAL.h"
 
 /* pinmux */
-uint8_t MPR121_Cap_Mouse_Pinmux[4] = {6, 5, 4, 7}; //{0, 1, 2, 3};  // up-ELE6, down-ELE4, left-ELE3, right-ELE5
-uint8_t MPR121_TouchBar_Pinmux[7] = {3, 2, 1, 0, 6, 5, 4};  //{4, 5, 10, 9, 8, 7, 6}; // L1, L2, L3, M, R1, R2, R3
+const uint8_t MPR121_Cap_Mouse_Pinmux[4] = {6, 5, 4, 7}; //{0, 1, 2, 3};  // up-ELE6, down-ELE4, left-ELE3, right-ELE5
+const uint8_t MPR121_TouchBar_Pinmux[7] = {3, 2, 1, 0, 6, 5, 4};  //{4, 5, 10, 9, 8, 7, 6}; // L1, L2, L3, M, R1, R2, R3
 
 /* algorithom variables */
 static alg_ListNode cap_mouse_data[4][ALG_CAP_MOUSE_BUF_LEN]; // 4 Corresponds to UP/DOWN/LEFT/RIGHT
@@ -104,7 +104,7 @@ static void MPR121_Config_Registers(char* buf)
 * Input          : ele_data
 * Return         : None
 *******************************************************************************/
-static uint16_t MPR121_ELE_to_Pin(uint16_t ele_data, uint8_t* pinmux, uint8_t size)
+static uint16_t MPR121_ELE_to_Pin(uint16_t ele_data, const uint8_t* pinmux, uint8_t size)
 {
   uint8_t i;
   uint16_t pin_data = 0;
@@ -169,20 +169,20 @@ void MPR121_Init(char* buf)
   PFIC_EnableIRQ( GPIO_B_IRQn );  //MPRINT_GPIO
   */
 
-  FLASH_Read_MPR121_ALG_Parameter();
+  DATAFLASH_Read_MPR121_ALG_Parameter();
   MPR121_ALG_Init();
   MPR121_Config_Registers(buf);
 }
 
 /*******************************************************************************
-* Function Name  : FLASH_Read_MPR121_ALG_Parameter
-* Description    : 从Flash读取MPR121算法参数
+* Function Name  : DATAFLASH_Read_MPR121_ALG_Parameter
+* Description    : 从DataFlash读取MPR121算法参数
 * Input          : None
 * Return         : None
 *******************************************************************************/
-void FLASH_Read_MPR121_ALG_Parameter(void)
+void DATAFLASH_Read_MPR121_ALG_Parameter(void)
 {
-  EEPROM_READ( FLASH_ADDR_MPR121_ALG_Param, &mpr_algParameter, sizeof(alg_Param) );
+  EEPROM_READ( DATAFLASH_ADDR_MPR121_ALG_Param, &mpr_algParameter, sizeof(alg_Param) );
   if (mpr_algParameter.magic != ALG_PARAM_MAGIC) {
     // use default parameter
     mpr_algParameter.magic = ALG_PARAM_MAGIC;
@@ -194,14 +194,15 @@ void FLASH_Read_MPR121_ALG_Parameter(void)
 }
 
 /*******************************************************************************
-* Function Name  : FLASH_Write_MPR121_ALG_Parameter
-* Description    : 将MPR121算法参数写入Flash
+* Function Name  : DATAFLASH_Write_MPR121_ALG_Parameter
+* Description    : 将MPR121算法参数写入DataFlash
 * Input          : None
 * Return         : None
 *******************************************************************************/
-void FLASH_Write_MPR121_ALG_Parameter(void)
+void DATAFLASH_Write_MPR121_ALG_Parameter(void)
 {
-  EEPROM_WRITE( FLASH_ADDR_MPR121_ALG_Param, &mpr_algParameter, sizeof(alg_Param) );
+  EEPROM_ERASE( DATAFLASH_ADDR_MPR121_ALG_Param, sizeof(alg_Param) );
+  EEPROM_WRITE( DATAFLASH_ADDR_MPR121_ALG_Param, &mpr_algParameter, sizeof(alg_Param) );
 }
 
 /*******************************************************************************
@@ -224,7 +225,7 @@ void MPR121_ALG_Update_algListNode(alg_ListNode* p[], uint8_t index, uint16_t da
 *******************************************************************************/
 void MPR121_ALG_Judge_Cap_Mouse(void)
 {
-  Mousestate* const data = (Mousestate*)&HID_DATA[1];
+  Mouse_Data_t* const data = (Mouse_Data_t*)HIDMouse;
   signed char XMovement = 0;
   signed char YMovement = 0;
   signed char sign_state_x, sign_state_y;
@@ -339,7 +340,7 @@ void MPR121_ALG_Judge_Touchbar(void)
 {
   /* read touch status version */
   static alg_TouchbarDirectiion dir = DIRECT_OTHER;
-  Mousestate* const m_data = (Mousestate*)&HID_DATA[1];;
+  Mouse_Data_t* const m_data = (Mouse_Data_t*)HIDMouse;
   uint8_t record;
   uint16_t now_dat = MPR121_ELE_to_Pin(touchbar_head[0]->dat, MPR121_TouchBar_Pinmux, 7);
   uint16_t pre_dat = MPR121_ELE_to_Pin(touchbar_head[0]->prev->dat, MPR121_TouchBar_Pinmux, 7);

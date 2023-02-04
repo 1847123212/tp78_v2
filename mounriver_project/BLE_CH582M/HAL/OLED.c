@@ -270,7 +270,7 @@ void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len)
 * Input          : x, y - 横坐标和页坐标; *chr - 要显示的字符串
 * Return         : None
 *******************************************************************************/
-void OLED_ShowString(uint8_t x, uint8_t y, uint8_t *chr)
+void OLED_ShowString(uint8_t x, uint8_t y, const uint8_t *chr)
 {
 	uint8_t j=0;
 	while(chr[j]!='\0')                         //该位不为空则打印
@@ -297,7 +297,7 @@ void OLED_ShowString(uint8_t x, uint8_t y, uint8_t *chr)
 * Input          : x, y - 横坐标和页坐标; *chr - 要显示的字符串
 * Return         : None
 *******************************************************************************/
-void OLED_ShowString_f(uint8_t x, uint8_t y, uint8_t *chr)
+void OLED_ShowString_f(uint8_t x, uint8_t y, const uint8_t *chr)
 {
   uint8_t j=0;
   unsigned char c=0,i=0;

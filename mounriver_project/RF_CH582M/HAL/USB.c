@@ -70,7 +70,7 @@ __attribute__((aligned(4)))  UINT8 EP3_Databuf[64 + 64];        //ep3_out(64)+ep
 // Task id
 tmosTaskID usbTaskID=INVALID_TASK_ID;
 // USB ready flag
-BOOL USB_Ready = FALSE;
+BOOL g_Ready_Status.usb = FALSE;
 
 /*******************************************************************************
 * Function Name  : USB_ProcessEvent
@@ -460,11 +460,11 @@ void USB_DevTransProcess( void )
   {
     if ( R8_USB_MIS_ST & RB_UMS_SUSPEND )
     {
-      USB_Ready = FALSE;
+      g_Ready_Status.usb = FALSE;
     }   // ¹ÒÆð
     else
     {
-      USB_Ready = TRUE;
+      g_Ready_Status.usb = TRUE;
     }   // »½ÐÑ
     R8_USB_INT_FG = RB_UIF_SUSPEND;
   }

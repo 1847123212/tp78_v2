@@ -24,7 +24,7 @@
     uint8_t PosY;
   }SnakePos;
 
-  SnakeDir BodyDir[MAX_SNAKE_LENGTH];
+  extern uint8_t BodyDir[MAX_SNAKE_LENGTH];
 
   void Snake_Init( void );
   void MoveSnake( void );

@@ -20,9 +20,9 @@
 /*********************************************************************
  * INCLUDES
  */
+#include "HAL.h"
 #include "CONFIG.h"
 #include "CH58x_common.h"
-#include "HAL.h"
 #include "hiddev.h"
 
 /*********************************************************************
@@ -78,7 +78,7 @@ int main( void )
   CH58X_BLEInit( );
   HAL_Init( );
 #if (defined (HAL_RF)) && (HAL_RF == TRUE)
-  if (RF_Ready == FALSE) {
+  if (g_Ready_Status.rf == FALSE) {
 #endif
     GAPRole_PeripheralInit( );
     HidDev_Init( );
@@ -92,7 +92,10 @@ int main( void )
   tmos_start_task( halTaskID, MAIN_CIRCULATION_EVENT, 10 ); // 主循环
   tmos_start_task( halTaskID, WS2812_EVENT, 10 );  // 背光控制
   tmos_start_task( halTaskID, OLED_UI_EVENT, 10 );  // OLED UI
+  tmos_start_task( usbTaskID, USB_TEST_EVENT, 1000 );  // USB TEST
+#if ((defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)) || ((defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE))
   tmos_start_task( halTaskID, MPR121_EVENT, 10 );  // MPR121
+#endif
   tmos_start_task( halTaskID, SYST_EVENT, 10 );  // 系统定时
   Main_Circulation();
 }
@@ -109,7 +112,7 @@ void GPIOA_IRQHandler(void)
 {
 #if (defined MSG_CP) && (MSG_CP == TRUE)
   CP_WAKEUP_GPIO(SetBits)( CP_WAKEUP_PIN );   // 唤醒CP
-  CP_Ready = FALSE;
+  g_Ready_Status.cp = FALSE;
   tmos_start_task( halTaskID, CP_INITIAL_EVENT, MS1_TO_SYSTEM_TIME(300) );  // CP重新上电
 #endif
   GPIOA_ClearITFlagBit(Colum_Pin_ALL);  // 用于唤醒

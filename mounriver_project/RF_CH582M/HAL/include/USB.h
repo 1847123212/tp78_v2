@@ -61,7 +61,7 @@
     extern const UINT8 *pDescr;
 
     extern tmosTaskID usbTaskID;
-    extern BOOL USB_Ready;
+    extern BOOL g_Ready_Status.usb;
     extern BOOL USB_CapsLock_LEDOn;
 
     void HAL_USBInit( void );

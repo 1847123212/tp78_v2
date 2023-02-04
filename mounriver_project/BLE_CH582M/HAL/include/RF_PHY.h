@@ -26,11 +26,10 @@ extern "C" {
 #define LLE_MODE_ORIGINAL_RX         (0x80) //如果配置LLEMODE时加上此宏，则接收第一字节为原始数据（原来为RSSI）
 
 extern void RF_Init(void);
-extern void FLASH_Read_RForBLE(void);
-extern void FLASH_Write_RForBLE(uint8_t rf_ready);
+extern void DATAFLASH_Read_RForBLE(void);
+extern void DATAFLASH_Write_RForBLE(uint8_t rf_ready);
 
 extern tmosTaskID RFTaskId;
-extern BOOL RF_Ready;
 
 #ifdef __cplusplus
 }

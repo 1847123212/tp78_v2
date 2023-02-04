@@ -24,9 +24,14 @@ C_DEPS :=
 SUBDIRS := \
 APP \
 HAL \
+Packages/CherryUSB/class/hid \
+Packages/CherryUSB/class/msc \
+Packages/CherryUSB/core \
+Packages/CherryUSB \
+Packages/FatFs \
+Packages/FatFs/port \
 Profile \
 RVMSIS \
 Startup \
 StdPeriphDriver \
-TMOS \
 

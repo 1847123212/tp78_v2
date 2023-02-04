@@ -36,21 +36,9 @@
     #define USB_DAT_INVALID       0x02
     #define USB_ERR_UNKNOWN       0x10
 
-    extern const UINT8 MyDevDescr[];
-    extern const UINT8 MyCfgDescr[];
-    extern const UINT8 MyLangDescr[];
-    extern const UINT8 MyManuInfo[];
-    extern const UINT8 MyProdInfo[] ;
-    extern const UINT8 KeyRepDesc[];
-    extern const UINT8 MouseRepDesc[];
-    extern UINT8 DevConfig;
-    extern UINT8 SetupReqCode;
-    extern UINT16 SetupReqLen;
-    extern const UINT8 *pDescr;
-
     extern tmosTaskID usbTaskID;
-    extern BOOL USB_Ready;
 
+    void usb_device_init( void );
     void HAL_USBInit( void );
 
 #endif

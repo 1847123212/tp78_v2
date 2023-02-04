@@ -7,26 +7,24 @@
  * SPDX-License-Identifier: GPL-3.0
  *******************************************************************************/
 
-#include <stdarg.h>
 #include "HAL.h"
+#include <stdarg.h>
 
 static oled_ui_task_structure oled_ui_task = { 0 };
 static oled_ui_delay_task_structure oled_ui_delay_task = { 0 };
 static oled_ui_slot_structure oled_ui_slot = { 0 };
 
-static oled_ui_menu_structure test_menu = {
+static const oled_ui_menu_structure test_menu = {
   .text[0] = "Test0",
   .text[1] = "Test1",
   .text[2] = "Test2",
-  .cur_idx = 0,
   .cur_x = 64,
 };
-static oled_ui_menu_structure main_menu = {
+static const oled_ui_menu_structure main_menu = {
   .text[0] = "StatusA",
   .text[1] = "StatusB",
   .text[2] = "StatusC",
   .p[3] = &test_menu,
-  .cur_idx = 0,
   .cur_x = 0,
 };
 
@@ -36,10 +34,10 @@ uint8_t oled_printf_history[OLED_UI_HIS_LEN][OLED_UI_HIS_DLEN+1] = {};  // 存放O
 static uint8_t oled_printf_history_idx = 0;  // 存放OLED打印历史的下标
 
 static uint8_t oled_ui_entry_idle_frame = 0;
-static oled_ui_menu_structure *cur_menu_p = &main_menu; // 当前菜单指向的位置
+static const oled_ui_menu_structure *cur_menu_p = &main_menu; // 当前菜单指向的位置
+static uint8_t menu_cur_idx;
 
 #ifdef OLED_0_66
-static uint8_t oled_smooth_select_buffer[2 * 64];
 static uint8_t oled_smooth_select_str0[OLED_UI_STR_LEN_MAX];
 static uint8_t oled_smooth_select_str1[OLED_UI_STR_LEN_MAX];
 static oled_ui_pos_len oled_smooth_select_pos_len[2];
@@ -453,18 +451,18 @@ void OLED_UI_draw_menu(oled_ui_swipe fresh_type)
       }
       break;
     case OLED_UI_SWIPE_UP:  // 上滑
-      if (cur_menu_p->cur_idx == 0) break;
-      OLED_UI_smooth_select_cfg(cur_menu_p->text[cur_menu_p->cur_idx], cur_menu_p->text[cur_menu_p->cur_idx - 1],
-                                cur_menu_p->cur_idx + 2, cur_menu_p->cur_idx + 1);
+      if (menu_cur_idx == 0) break;
+      OLED_UI_smooth_select_cfg(cur_menu_p->text[menu_cur_idx], cur_menu_p->text[menu_cur_idx - 1],
+                                menu_cur_idx + 2, menu_cur_idx + 1);
       OLED_UI_add_default_delay_task(OLED_UI_FLAG_SMOOTH_SELECT, 30);
-      cur_menu_p->cur_idx--;
+      menu_cur_idx--;
       break;
     case OLED_UI_SWIPE_DOWN:  // 下滑
-      if (cur_menu_p->cur_idx == OLED_UI_MENU_MAX_LEN - 1) break;
-      OLED_UI_smooth_select_cfg(cur_menu_p->text[cur_menu_p->cur_idx], cur_menu_p->text[cur_menu_p->cur_idx + 1],
-                                cur_menu_p->cur_idx + 2, cur_menu_p->cur_idx + 3);
+      if (menu_cur_idx == OLED_UI_MENU_MAX_LEN - 1) break;
+      OLED_UI_smooth_select_cfg(cur_menu_p->text[menu_cur_idx], cur_menu_p->text[menu_cur_idx + 1],
+                                menu_cur_idx + 2, menu_cur_idx + 3);
       OLED_UI_add_default_delay_task(OLED_UI_FLAG_SMOOTH_SELECT, 30);
-      cur_menu_p->cur_idx++;
+      menu_cur_idx++;
       break;
     case OLED_UI_SWIPE_LEFT:  // 左滑
       if (cur_menu_p->p[OLED_UI_MENU_MAX_LEN] == NULL) break;
@@ -483,7 +481,7 @@ void OLED_UI_draw_menu(oled_ui_swipe fresh_type)
 * Input          : str0/str1 - 起始/终止字符串; y0/y1 - 起始/终止页数
 * Return         : None
 *******************************************************************************/
-void OLED_UI_smooth_select_cfg(uint8_t* str0, uint8_t* str1, uint8_t y0, uint8_t y1)
+void OLED_UI_smooth_select_cfg(const uint8_t* str0, const uint8_t* str1, uint8_t y0, uint8_t y1)
 {
   uint8_t len0, len1;
 
@@ -511,7 +509,7 @@ void OLED_UI_smooth_select_cfg(uint8_t* str0, uint8_t* str1, uint8_t y0, uint8_t
 void OLED_UI_smooth_select(void)
 {
 #if defined(OLED_0_66) && (FONT_SIZE == 8)
-  uint8_t i, j, temp, dir;
+  uint8_t i, j, temp, w_buf, dir;
   uint32_t maxlen, minlen;
 
   dir = oled_smooth_select_pos_len[0].y < oled_smooth_select_pos_len[1].y;
@@ -519,43 +517,44 @@ void OLED_UI_smooth_select(void)
   maxlen = MAX(oled_smooth_select_pos_len[0].len, oled_smooth_select_pos_len[1].len);
   minlen = MIN(oled_smooth_select_pos_len[0].len, oled_smooth_select_pos_len[1].len);
 
+  OLED_Set_Pos(cur_menu_p->cur_x, oled_smooth_select_pos_len[0].y);
   for (i = 0; i < maxlen; i++) {
     for (j = 0; j < 6; j++) {
       if (i < oled_smooth_select_pos_len[0].len) {
         if (i * 6 + j < oled_smooth_w_cnt) {
-          oled_smooth_select_buffer[i * 6 + j] = ((~F6x8[oled_smooth_select_str0[i] - ' '][j] & ~temp) | (F6x8[oled_smooth_select_str0[i] - ' '][j] & temp));
+          w_buf = ((~F6x8[oled_smooth_select_str0[i] - ' '][j] & ~temp) | (F6x8[oled_smooth_select_str0[i] - ' '][j] & temp));
         } else {
-          oled_smooth_select_buffer[i * 6 + j] = F6x8[oled_smooth_select_str0[i] - ' '][j];
+          w_buf = F6x8[oled_smooth_select_str0[i] - ' '][j];
         }
       } else {
         if (i * 6 + j < oled_smooth_w_cnt) {
-          oled_smooth_select_buffer[i * 6 + j] = ~temp;
+          w_buf = ~temp;
         } else {
-          oled_smooth_select_buffer[i * 6 + j] = 0;
+          w_buf = 0;
         }
       }
+      OLED_WR_Byte(w_buf, OLED_DATA);
     }
   }
+  OLED_Set_Pos(cur_menu_p->cur_x, oled_smooth_select_pos_len[1].y);
   for (i = 0; i < maxlen; i++) {
     for (j = 0; j < 6; j++) {
       if (i < oled_smooth_select_pos_len[1].len) {
         if (i * 6 + j < oled_smooth_w_cnt) {
-          oled_smooth_select_buffer[64 + i * 6 + j] = ((~F6x8[oled_smooth_select_str1[i] - ' '][j] & temp) | (F6x8[oled_smooth_select_str1[i] - ' '][j] & ~temp));
+          w_buf = ((~F6x8[oled_smooth_select_str1[i] - ' '][j] & temp) | (F6x8[oled_smooth_select_str1[i] - ' '][j] & ~temp));
         } else {
-          oled_smooth_select_buffer[64 + i * 6 + j] = F6x8[oled_smooth_select_str1[i] - ' '][j];
+          w_buf = F6x8[oled_smooth_select_str1[i] - ' '][j];
         }
       } else {
         if (i * 6 + j < oled_smooth_w_cnt) {
-          oled_smooth_select_buffer[64 + i * 6 + j] = temp;
+          w_buf = temp;
         } else {
-          oled_smooth_select_buffer[64 + i * 6 + j] = 0;
+          w_buf = 0;
         }
       }
+      OLED_WR_Byte(w_buf, OLED_DATA);
     }
   }
-
-  OLED_DrawBMP(cur_menu_p->cur_x, oled_smooth_select_pos_len[0].y, 64, oled_smooth_select_pos_len[0].y + 1, oled_smooth_select_buffer);
-  OLED_DrawBMP(cur_menu_p->cur_x, oled_smooth_select_pos_len[1].y, 64, oled_smooth_select_pos_len[1].y + 1, oled_smooth_select_buffer + 64);
 
   if ((oled_smooth_y_cnt != 8 && dir) || (oled_smooth_y_cnt != 0xFF && !dir)) {
     if (oled_smooth_select_pos_len[0].len > oled_smooth_select_pos_len[1].len) {

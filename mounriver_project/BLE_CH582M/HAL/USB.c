@@ -1,78 +1,505 @@
 /********************************** (C) COPYRIGHT *******************************
  * File Name          : USB.c
- * Author             : ChnMasterOG, WCH
+ * Author             : ChnMasterOG
  * Version            : V1.1
- * Date               : 2022/2/24
- * Description        : USB驱动源文件
- * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Date               : 2023/2/4
+ * Description        : CherryUSB驱动
  * SPDX-License-Identifier: GPL-3.0
  *******************************************************************************/
 
+#include "usbd_core.h"
+#include "usbd_hid.h"
+#include "usbd_msc.h"
+
+#ifndef WBVAL
+#define WBVAL(x) (unsigned char)((x) & 0xFF), (unsigned char)(((x) >> 8) & 0xFF)
+#endif
+
+/*!< USBD CONFIG */
+#define USBD_VERSION 0x0110
+#define USBD_PRODUCT_VERSION 0x0001
+#define USBD_VID 0xffff
+#define USBD_PID 0xffff
+#define USBD_MAX_POWER 0xfa
+#define USBD_LANGID_STRING 1033
+#define USBD_CONFIG_DESCRIPTOR_SIZE 107
+
+/*!< USBD ENDPOINT CONFIG */
+#define USBD_IF0_AL0_EP0_ADDR 0x81
+#define USBD_IF0_AL0_EP0_SIZE 0x08
+#define USBD_IF0_AL0_EP0_INTERVAL 0x01
+
+#define USBD_IF1_AL0_EP0_ADDR 0x82
+#define USBD_IF1_AL0_EP0_SIZE 0x04
+#define USBD_IF1_AL0_EP0_INTERVAL 0x01
+
+#define USBD_IF2_AL0_EP0_ADDR 0x83
+#define USBD_IF2_AL0_EP0_SIZE 0x01
+#define USBD_IF2_AL0_EP0_INTERVAL 0x01
+
+#define USBD_IF3_AL0_EP0_ADDR 0x04
+#define USBD_IF3_AL0_EP0_SIZE 0x40
+#define USBD_IF3_AL0_EP0_INTERVAL 0x00
+
+#define USBD_IF3_AL0_EP1_ADDR 0x84
+#define USBD_IF3_AL0_EP1_SIZE 0x40
+#define USBD_IF3_AL0_EP1_INTERVAL 0x00
+
+/*!< USBD HID CONFIG */
+#define USBD_HID_VERSION 0x0111
+#define USBD_HID_COUNTRY_CODE 0
+#define USBD_IF0_AL0_HID_REPORT_DESC_SIZE 63
+#define USBD_IF1_AL0_HID_REPORT_DESC_SIZE 74
+#define USBD_IF2_AL0_HID_REPORT_DESC_SIZE 33
+
+/*!< USBD Descriptor */
+const unsigned char usbd_descriptor[] = {
+/********************************************** Device Descriptor */
+    0x12,                                       /*!< bLength */
+    0x01,                                       /*!< bDescriptorType */
+    WBVAL(USBD_VERSION),                        /*!< bcdUSB */
+    0x00,                                       /*!< bDeviceClass */
+    0x00,                                       /*!< bDeviceSubClass */
+    0x00,                                       /*!< bDeviceProtocol */
+    0x40,                                       /*!< bMaxPacketSize */
+    WBVAL(USBD_VID),                            /*!< idVendor */
+    WBVAL(USBD_PID),                            /*!< idProduct */
+    WBVAL(USBD_PRODUCT_VERSION),                /*!< bcdDevice */
+    0x01,                                       /*!< iManufacturer */
+    0x02,                                       /*!< iProduct */
+    0x03,                                       /*!< iSerial */
+    0x01,                                       /*!< bNumConfigurations */
+/********************************************** Config Descriptor */
+    0x09,                                       /*!< bLength */
+    0x02,                                       /*!< bDescriptorType */
+    WBVAL(USBD_CONFIG_DESCRIPTOR_SIZE),         /*!< wTotalLength */
+    0x04,                                       /*!< bNumInterfaces */
+    0x01,                                       /*!< bConfigurationValue */
+    0x00,                                       /*!< iConfiguration */
+    0xa0,                                       /*!< bmAttributes */
+    USBD_MAX_POWER,                             /*!< bMaxPower */
+/********************************************** Interface 0 Alternate 0 Descriptor */
+    0x09,                                       /*!< bLength */
+    0x04,                                       /*!< bDescriptorType */
+    0x00,                                       /*!< bInterfaceNumber */
+    0x00,                                       /*!< bAlternateSetting */
+    0x01,                                       /*!< bNumEndpoints */
+    0x03,                                       /*!< bInterfaceClass */
+    0x01,                                       /*!< bInterfaceSubClass */
+    0x01,                                       /*!< bInterfaceProtocol */
+    0x00,                                       /*!< iInterface */
+/********************************************** Class Specific Descriptor of HID */
+    0x09,                                       /*!< bLength */
+    0x21,                                       /*!< bDescriptorType */
+    WBVAL(USBD_HID_VERSION),                    /*!< bcdHID */
+    USBD_HID_COUNTRY_CODE,                      /*!< bCountryCode */
+    0x01,                                       /*!< bNumDescriptors */
+    0x22,                                       /*!< bDescriptorType */
+    WBVAL(USBD_IF0_AL0_HID_REPORT_DESC_SIZE),   /*!< wItemLength */
+/********************************************** Endpoint 0 Descriptor */
+    0x07,                                       /*!< bLength */
+    0x05,                                       /*!< bDescriptorType */
+    USBD_IF0_AL0_EP0_ADDR,                      /*!< bEndpointAddress */
+    0x03,                                       /*!< bmAttributes */
+    WBVAL(USBD_IF0_AL0_EP0_SIZE),               /*!< wMaxPacketSize */
+    USBD_IF0_AL0_EP0_INTERVAL,                  /*!< bInterval */
+/********************************************** Interface 1 Alternate 0 Descriptor */
+    0x09,                                       /*!< bLength */
+    0x04,                                       /*!< bDescriptorType */
+    0x01,                                       /*!< bInterfaceNumber */
+    0x00,                                       /*!< bAlternateSetting */
+    0x01,                                       /*!< bNumEndpoints */
+    0x03,                                       /*!< bInterfaceClass */
+    0x01,                                       /*!< bInterfaceSubClass */
+    0x02,                                       /*!< bInterfaceProtocol */
+    0x00,                                       /*!< iInterface */
+/********************************************** Class Specific Descriptor of HID */
+    0x09,                                       /*!< bLength */
+    0x21,                                       /*!< bDescriptorType */
+    WBVAL(USBD_HID_VERSION),                    /*!< bcdHID */
+    USBD_HID_COUNTRY_CODE,                      /*!< bCountryCode */
+    0x01,                                       /*!< bNumDescriptors */
+    0x22,                                       /*!< bDescriptorType */
+    WBVAL(USBD_IF1_AL0_HID_REPORT_DESC_SIZE),   /*!< wItemLength */
+/********************************************** Endpoint 0 Descriptor */
+    0x07,                                       /*!< bLength */
+    0x05,                                       /*!< bDescriptorType */
+    USBD_IF1_AL0_EP0_ADDR,                      /*!< bEndpointAddress */
+    0x03,                                       /*!< bmAttributes */
+    WBVAL(USBD_IF1_AL0_EP0_SIZE),               /*!< wMaxPacketSize */
+    USBD_IF1_AL0_EP0_INTERVAL,                  /*!< bInterval */
+/********************************************** Interface 2 Alternate 0 Descriptor */
+    0x09,                                       /*!< bLength */
+    0x04,                                       /*!< bDescriptorType */
+    0x02,                                       /*!< bInterfaceNumber */
+    0x00,                                       /*!< bAlternateSetting */
+    0x01,                                       /*!< bNumEndpoints */
+    0x03,                                       /*!< bInterfaceClass */
+    0x01,                                       /*!< bInterfaceSubClass */
+    0x00,                                       /*!< bInterfaceProtocol */
+    0x00,                                       /*!< iInterface */
+/********************************************** Class Specific Descriptor of HID */
+    0x09,                                       /*!< bLength */
+    0x21,                                       /*!< bDescriptorType */
+    WBVAL(USBD_HID_VERSION),                    /*!< bcdHID */
+    USBD_HID_COUNTRY_CODE,                      /*!< bCountryCode */
+    0x01,                                       /*!< bNumDescriptors */
+    0x22,                                       /*!< bDescriptorType */
+    WBVAL(USBD_IF2_AL0_HID_REPORT_DESC_SIZE),   /*!< wItemLength */
+/********************************************** Endpoint 0 Descriptor */
+    0x07,                                       /*!< bLength */
+    0x05,                                       /*!< bDescriptorType */
+    USBD_IF2_AL0_EP0_ADDR,                      /*!< bEndpointAddress */
+    0x03,                                       /*!< bmAttributes */
+    WBVAL(USBD_IF2_AL0_EP0_SIZE),               /*!< wMaxPacketSize */
+    USBD_IF2_AL0_EP0_INTERVAL,                  /*!< bInterval */
+/********************************************** Interface 3 Alternate 0 Descriptor */
+    0x09,                                       /*!< bLength */
+    0x04,                                       /*!< bDescriptorType */
+    0x03,                                       /*!< bInterfaceNumber */
+    0x00,                                       /*!< bAlternateSetting */
+    0x02,                                       /*!< bNumEndpoints */
+    0x08,                                       /*!< bInterfaceClass */
+    0x06,                                       /*!< bInterfaceSubClass */
+    0x50,                                       /*!< bInterfaceProtocol */
+    0x00,                                       /*!< iInterface */
+/********************************************** Class Specific Descriptor of MSC */
+/********************************************** Endpoint 0 Descriptor */
+    0x07,                                       /*!< bLength */
+    0x05,                                       /*!< bDescriptorType */
+    USBD_IF3_AL0_EP0_ADDR,                      /*!< bEndpointAddress */
+    0x02,                                       /*!< bmAttributes */
+    WBVAL(USBD_IF3_AL0_EP0_SIZE),               /*!< wMaxPacketSize */
+    USBD_IF3_AL0_EP0_INTERVAL,                  /*!< bInterval */
+/********************************************** Endpoint 1 Descriptor */
+    0x07,                                       /*!< bLength */
+    0x05,                                       /*!< bDescriptorType */
+    USBD_IF3_AL0_EP1_ADDR,                      /*!< bEndpointAddress */
+    0x02,                                       /*!< bmAttributes */
+    WBVAL(USBD_IF3_AL0_EP1_SIZE),               /*!< wMaxPacketSize */
+    USBD_IF3_AL0_EP1_INTERVAL,                  /*!< bInterval */
+/********************************************** Language ID String Descriptor */
+    0x04,                                       /*!< bLength */
+    0x03,                                       /*!< bDescriptorType */
+    WBVAL(USBD_LANGID_STRING),                  /*!< wLangID0 */
+/********************************************** String 1 Descriptor */
+/* Your Manufacturer */
+    0x24,                                       /*!< bLength */
+    0x03,                                       /*!< bDescriptorType */
+    0x59, 0x00,                                 /*!< 'Y' wcChar0 */
+    0x6f, 0x00,                                 /*!< 'o' wcChar1 */
+    0x75, 0x00,                                 /*!< 'u' wcChar2 */
+    0x72, 0x00,                                 /*!< 'r' wcChar3 */
+    0x20, 0x00,                                 /*!< ' ' wcChar4 */
+    0x4d, 0x00,                                 /*!< 'M' wcChar5 */
+    0x61, 0x00,                                 /*!< 'a' wcChar6 */
+    0x6e, 0x00,                                 /*!< 'n' wcChar7 */
+    0x75, 0x00,                                 /*!< 'u' wcChar8 */
+    0x66, 0x00,                                 /*!< 'f' wcChar9 */
+    0x61, 0x00,                                 /*!< 'a' wcChar10 */
+    0x63, 0x00,                                 /*!< 'c' wcChar11 */
+    0x74, 0x00,                                 /*!< 't' wcChar12 */
+    0x75, 0x00,                                 /*!< 'u' wcChar13 */
+    0x72, 0x00,                                 /*!< 'r' wcChar14 */
+    0x65, 0x00,                                 /*!< 'e' wcChar15 */
+    0x72, 0x00,                                 /*!< 'r' wcChar16 */
+/********************************************** String 2 Descriptor */
+/* Your Product */
+    0x1a,                                       /*!< bLength */
+    0x03,                                       /*!< bDescriptorType */
+    0x59, 0x00,                                 /*!< 'Y' wcChar0 */
+    0x6f, 0x00,                                 /*!< 'o' wcChar1 */
+    0x75, 0x00,                                 /*!< 'u' wcChar2 */
+    0x72, 0x00,                                 /*!< 'r' wcChar3 */
+    0x20, 0x00,                                 /*!< ' ' wcChar4 */
+    0x50, 0x00,                                 /*!< 'P' wcChar5 */
+    0x72, 0x00,                                 /*!< 'r' wcChar6 */
+    0x6f, 0x00,                                 /*!< 'o' wcChar7 */
+    0x64, 0x00,                                 /*!< 'd' wcChar8 */
+    0x75, 0x00,                                 /*!< 'u' wcChar9 */
+    0x63, 0x00,                                 /*!< 'c' wcChar10 */
+    0x74, 0x00,                                 /*!< 't' wcChar11 */
+/********************************************** String 3 Descriptor */
+/* Your Serial Number */
+    0x26,                                       /*!< bLength */
+    0x03,                                       /*!< bDescriptorType */
+    0x59, 0x00,                                 /*!< 'Y' wcChar0 */
+    0x6f, 0x00,                                 /*!< 'o' wcChar1 */
+    0x75, 0x00,                                 /*!< 'u' wcChar2 */
+    0x72, 0x00,                                 /*!< 'r' wcChar3 */
+    0x20, 0x00,                                 /*!< ' ' wcChar4 */
+    0x53, 0x00,                                 /*!< 'S' wcChar5 */
+    0x65, 0x00,                                 /*!< 'e' wcChar6 */
+    0x72, 0x00,                                 /*!< 'r' wcChar7 */
+    0x69, 0x00,                                 /*!< 'i' wcChar8 */
+    0x61, 0x00,                                 /*!< 'a' wcChar9 */
+    0x6c, 0x00,                                 /*!< 'l' wcChar10 */
+    0x20, 0x00,                                 /*!< ' ' wcChar11 */
+    0x4e, 0x00,                                 /*!< 'N' wcChar12 */
+    0x75, 0x00,                                 /*!< 'u' wcChar13 */
+    0x6d, 0x00,                                 /*!< 'm' wcChar14 */
+    0x62, 0x00,                                 /*!< 'b' wcChar15 */
+    0x65, 0x00,                                 /*!< 'e' wcChar16 */
+    0x72, 0x00,                                 /*!< 'r' wcChar17 */
+    0x00
+};
+
+/*!< USBD HID REPORT 0 Descriptor */
+const unsigned char usbd_hid_0_report_descriptor[USBD_IF0_AL0_HID_REPORT_DESC_SIZE] = {
+        0x05, 0x01, // USAGE_PAGE (Generic Desktop)
+        0x09, 0x06, // USAGE (Keyboard)
+        0xa1, 0x01, // COLLECTION (Application)
+        0x05, 0x07, // USAGE_PAGE (Keyboard)
+        0x19, 0xe0, // USAGE_MINIMUM (Keyboard LeftControl)
+        0x29, 0xe7, // USAGE_MAXIMUM (Keyboard Right GUI)
+        0x15, 0x00, // LOGICAL_MINIMUM (0)
+        0x25, 0x01, // LOGICAL_MAXIMUM (1)
+        0x75, 0x01, // REPORT_SIZE (1)
+        0x95, 0x08, // REPORT_COUNT (8)
+        0x81, 0x02, // INPUT (Data,Var,Abs)
+        0x95, 0x01, // REPORT_COUNT (1)
+        0x75, 0x08, // REPORT_SIZE (8)
+        0x81, 0x03, // INPUT (Cnst,Var,Abs)
+        0x95, 0x05, // REPORT_COUNT (5)
+        0x75, 0x01, // REPORT_SIZE (1)
+        0x05, 0x08, // USAGE_PAGE (LEDs)
+        0x19, 0x01, // USAGE_MINIMUM (Num Lock)
+        0x29, 0x05, // USAGE_MAXIMUM (Kana)
+        0x91, 0x02, // OUTPUT (Data,Var,Abs)
+        0x95, 0x01, // REPORT_COUNT (1)
+        0x75, 0x03, // REPORT_SIZE (3)
+        0x91, 0x03, // OUTPUT (Cnst,Var,Abs)
+        0x95, 0x06, // REPORT_COUNT (6)
+        0x75, 0x08, // REPORT_SIZE (8)
+        0x15, 0x00, // LOGICAL_MINIMUM (0)
+        0x25, 0xFF, // LOGICAL_MAXIMUM (255)
+        0x05, 0x07, // USAGE_PAGE (Keyboard)
+        0x19, 0x00, // USAGE_MINIMUM (Reserved (no event indicated))
+        0x29, 0x65, // USAGE_MAXIMUM (Keyboard Application)
+        0x81, 0x00, // INPUT (Data,Ary,Abs)
+        0xc0        // END_COLLECTION
+};
+
+/*!< USBD HID REPORT 1 Descriptor */
+const unsigned char usbd_hid_1_report_descriptor[USBD_IF1_AL0_HID_REPORT_DESC_SIZE] = {
+        0x05, 0x01, // USAGE_PAGE (Generic Desktop)
+        0x09, 0x02, // USAGE (Mouse)
+        0xA1, 0x01, // COLLECTION (Application)
+        0x09, 0x01, //   USAGE (Pointer)
+
+        0xA1, 0x00, //   COLLECTION (Physical)
+        0x05, 0x09, //     USAGE_PAGE (Button)
+        0x19, 0x01, //     USAGE_MINIMUM (Button 1)
+        0x29, 0x03, //     USAGE_MAXIMUM (Button 3)
+
+        0x15, 0x00, //     LOGICAL_MINIMUM (0)
+        0x25, 0x01, //     LOGICAL_MAXIMUM (1)
+        0x95, 0x03, //     REPORT_COUNT (3)
+        0x75, 0x01, //     REPORT_SIZE (1)
+
+        0x81, 0x02, //     INPUT (Data,Var,Abs)
+        0x95, 0x01, //     REPORT_COUNT (1)
+        0x75, 0x05, //     REPORT_SIZE (5)
+        0x81, 0x01, //     INPUT (Cnst,Var,Abs)
+
+        0x05, 0x01, //     USAGE_PAGE (Generic Desktop)
+        0x09, 0x30, //     USAGE (X)
+        0x09, 0x31, //     USAGE (Y)
+        0x09, 0x38,
+
+        0x15, 0x81, //     LOGICAL_MINIMUM (-127)
+        0x25, 0x7F, //     LOGICAL_MAXIMUM (127)
+        0x75, 0x08, //     REPORT_SIZE (8)
+        0x95, 0x03, //     REPORT_COUNT (2)
+
+        0x81, 0x06, //     INPUT (Data,Var,Rel)
+        0xC0, 0x09,
+        0x3c, 0x05,
+        0xff, 0x09,
+
+        0x01, 0x15,
+        0x00, 0x25,
+        0x01, 0x75,
+        0x01, 0x95,
+
+        0x02, 0xb1,
+        0x22, 0x75,
+        0x06, 0x95,
+        0x01, 0xb1,
+
+        0x01, 0xc0 //   END_COLLECTION
+};
+
+
+/*!< USBD HID REPORT 2 Descriptor */
+const unsigned char usbd_hid_2_report_descriptor[USBD_IF2_AL0_HID_REPORT_DESC_SIZE] = {
+        0x05, 0x0C,
+        0x09, 0x01,
+        0xA1, 0x01,
+
+        0x09, 0xB0,
+        0x09, 0xB5,
+        0x09, 0xB6,
+        0x09, 0xE9,
+        0x09, 0xEA,
+        0x09, 0xE2,
+        0x09, 0xB1,
+        0x09, 0xB7,
+
+        0x15, 0x00,
+        0x25, 0x01,
+        0x95, 0x08,
+        0x75, 0x01,
+        0x81, 0x02,
+        0xC0
+};
+
+#define HID_STATE_IDLE 0
+#define HID_STATE_BUSY 1
+
+/*!< hid state ! Data can be sent only when state is idle  */
+static volatile uint8_t hid_state = HID_STATE_IDLE;
+
+/* function ------------------------------------------------------------------*/
+static void usbd_hid_int_callback(uint8_t ep, uint32_t nbytes)
+{
+    hid_state = HID_STATE_IDLE;
+}
+
+/*!< endpoint call back */
+static struct usbd_endpoint hid_keyboard_in_ep = {
+    .ep_cb = usbd_hid_int_callback,
+    .ep_addr = USBD_IF0_AL0_EP0_ADDR
+};
+
+static struct usbd_endpoint hid_mouse_in_ep = {
+    .ep_cb = usbd_hid_int_callback,
+    .ep_addr = USBD_IF1_AL0_EP0_ADDR
+};
+
+static struct usbd_endpoint hid_vol_in_ep = {
+    .ep_cb = usbd_hid_int_callback,
+    .ep_addr = USBD_IF2_AL0_EP0_ADDR
+};
+
+struct usbd_interface intf0;
+struct usbd_interface intf1;
+struct usbd_interface intf2;
+struct usbd_interface intf3;
+
+void usb_device_init(void)
+{
+    usbd_desc_register(usbd_descriptor);
+    usbd_add_interface(usbd_hid_init_intf(&intf0, usbd_hid_0_report_descriptor, USBD_IF0_AL0_HID_REPORT_DESC_SIZE));
+    usbd_add_endpoint(&hid_keyboard_in_ep);
+    usbd_add_interface(usbd_hid_init_intf(&intf1, usbd_hid_1_report_descriptor, USBD_IF1_AL0_HID_REPORT_DESC_SIZE));
+    usbd_add_endpoint(&hid_mouse_in_ep);
+    usbd_add_interface(usbd_hid_init_intf(&intf2, usbd_hid_2_report_descriptor, USBD_IF2_AL0_HID_REPORT_DESC_SIZE));
+    usbd_add_endpoint(&hid_vol_in_ep);
+    usbd_add_interface(usbd_msc_init_intf(&intf3, USBD_IF3_AL0_EP0_ADDR, USBD_IF3_AL0_EP1_ADDR));
+
+    usbd_initialize();
+}
+
 #include "HAL.h"
-#include "CH58x_common.h"
-
-// 设备描述符
-const UINT8 MyDevDescr[] = { 0x12, 0x01, 0x10, 0x01, 0x00, 0x00, 0x00, DevEP0SIZE,
-                             0x4A, 0x43,  // idVender=0x434A
-                             0x40, 0x55,  // idProduct=0x5540
-                             0x01, 0x01,  // bcdDevice=0x0101
-                             0x01, 0x02, 0x00, 0x01
-                           };
-// 配置描述符
-const UINT8 MyCfgDescr[] = { 0x09, 0x02, 0x6B, 0x00, 0x04, 0x01, 0x00, 0xA0, 0x32,            //配置描述符: 4个接口
-                             0x09, 0x04, 0x00, 0x00, 0x01, 0x03, 0x01, 0x01, 0x00,            //接口描述符,键盘：接口编号0
-                             0x09, 0x21, 0x11, 0x01, 0x00, 0x01, 0x22, 0x3e, 0x00,            //HID类描述符：下级描述符KeyRepDesc
-                             0x07, 0x05, 0x81, 0x03, 0x08, 0x00, 0x0A,                        //端点描述符：端点地址0x81 即端点1
-                             0x09, 0x04, 0x01, 0x00, 0x01, 0x03, 0x01, 0x02, 0x00,            //接口描述符,鼠标：接口编号1
-                             0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x34, 0x00,            //HID类描述符：下级描述符MouseRepDesc
-                             0x07, 0x05, 0x82, 0x03, 0x04, 0x00, 0x0A,                        //端点描述符：端点地址0x82 即端点2
-                             0x09, 0x04, 0x02, 0x00, 0x01, 0x03, 0x01, 0x00, 0x00,            //接口描述符,音量：接口编号2
-                             0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x21, 0x00,            //HID类描述符：下级描述符VolumeRepDesc
-                             0x07, 0x05, 0x83, 0x03, 0x01, 0x00, 0x0A,                        //端点描述符：端点地址0x83 即端点3
-                             0x09, 0x04, 0x03, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00,            //接口描述符,自定义：接口编号3
-                             0x07, 0x05, 0x84, 0x02, 0x40, 0x00, 0x00,                        //端点描述符：端点地址0x84
-                             0x07, 0x05, 0x04, 0x02, 0x40, 0x00, 0x00,                        //端点描述符：端点地址0x04
-                             //端点地址 Bit 3…0: The endpoint number Bit 6…4: Reserved, reset to zero
-                           };
-// 语言描述符
-const UINT8 MyLangDescr[] = { 0x04, 0x03, 0x09, 0x04 };
-// 厂家信息
-const UINT8 MyManuInfo[] = { 0x0E, 0x03, 'l', 0, 'a', 0, 'b', 0, '4', 0, '1', 0, '8', 0 };
-// 产品信息
-const UINT8 MyProdInfo[] = { 0x0A, 0x03, 'T', 0, 'P', 0, '7', 0, '8', 0 };
-/*HID类报表描述符*/
-const UINT8 KeyRepDesc[] = { 0x05, 0x01, 0x09, 0x06, 0xA1, 0x01, 0x05, 0x07, 0x19, 0xe0, 0x29, 0xe7, 0x15, 0x00, 0x25,
-                             0x01, 0x75, 0x01, 0x95, 0x08, 0x81, 0x02, 0x95, 0x01, 0x75, 0x08, 0x81, 0x01, 0x95, 0x03,
-                             0x75, 0x01, 0x05, 0x08, 0x19, 0x01, 0x29, 0x03, 0x91, 0x02, 0x95, 0x05, 0x75, 0x01, 0x91,
-                             0x01, 0x95, 0x06, 0x75, 0x08, 0x26, 0xff, 0x00, 0x05, 0x07, 0x19, 0x00, 0x29, 0x91, 0x81,
-                             0x00, 0xC0 };
-const UINT8 MouseRepDesc[] = { 0x05, 0x01, 0x09, 0x02, 0xA1, 0x01, 0x09, 0x01, 0xA1, 0x00, 0x05, 0x09, 0x19, 0x01, 0x29,
-                               0x03, 0x15, 0x00, 0x25, 0x01, 0x75, 0x01, 0x95, 0x03, 0x81, 0x02, 0x75, 0x05, 0x95, 0x01,
-                               0x81, 0x01, 0x05, 0x01, 0x09, 0x30, 0x09, 0x31, 0x09, 0x38, 0x15, 0x81, 0x25, 0x7f, 0x75,
-                               0x08, 0x95, 0x03, 0x81, 0x06, 0xC0, 0xC0 };
-const UINT8 VolumeRepDesc[] = { 0x05, 0x0C, 0x09, 0x01, 0xA1, 0x01, 0x09, 0xB0, 0x09, 0xB5, 0x09, 0xB6, 0x09, 0xE9, 0x09,
-                                0xEA, 0x09, 0xE2, 0x09, 0xB1, 0x09, 0xB7, 0x15, 0x00, 0x25, 0x01, 0x95, 0x08, 0x75, 0x01,
-                                0x81, 0x02, 0xC0 };
-
-/**********************************************************/
-UINT8 DevConfig;
-UINT8 SetupReqCode;
-UINT16 SetupReqLen;
-const UINT8 *pDescr;
-
-extern uint8_t CustomKey[COL_SIZE][ROW_SIZE];         // 其它键盘布局需修改此处
-extern uint8_t Extra_CustomKey[COL_SIZE][ROW_SIZE];   // 其它键盘布局需修改此处
-
-/******** 用户自定义分配端点RAM ****************************************/
-__attribute__((aligned(4)))  UINT8 EP0_Databuf[64 + 64 + 64];   //ep0(64)+ep4_out(64)+ep4_in(64)
-__attribute__((aligned(4)))  UINT8 EP1_Databuf[64 + 64];        //ep1_out(64)+ep1_in(64)
-__attribute__((aligned(4)))  UINT8 EP2_Databuf[64 + 64];        //ep2_out(64)+ep2_in(64)
-__attribute__((aligned(4)))  UINT8 EP3_Databuf[64 + 64];        //ep3_out(64)+ep3_in(64)
 
 // Task id
-tmosTaskID usbTaskID=INVALID_TASK_ID;
-// USB ready flag
-BOOL USB_Ready = FALSE;
+tmosTaskID usbTaskID = INVALID_TASK_ID;
+
+/*--------------------------- define for hid ---------------------------*/
+
+void usbd_configure_done_callback(void)
+{
+    /* no out ep, do nothing */
+}
+
+void usbh_hid_set_idle(uint8_t intf, uint8_t report_id, uint8_t duration)
+{
+
+}
+
+void usbh_hid_set_protocol(uint8_t intf, uint8_t protocol)
+{
+
+}
+
+void usbh_hid_set_report(uint8_t intf, uint8_t report_id, uint8_t report_type, uint8_t *report, uint8_t report_len)
+{
+    g_CapsLock_LEDOn_Status.usb = (report[0] & 0x2) ? TRUE : FALSE;
+}
+
+void usb_suspend_wake_up_cb(uint8_t type)
+{
+    if (type) { // wake up
+        tmos_start_task( halTaskID, USB_READY_EVENT, 20 );
+    } else {
+        g_Ready_Status.usb = FALSE;
+        tmos_clear_event( halTaskID, USB_READY_EVENT );
+    }
+}
+
+/*--------------------------- define for msc ---------------------------*/
+
+#define BLOCK_SIZE  512
+
+void usbd_msc_get_cap(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
+{
+    *block_num = 64; //Pretend having so many buffer,not has actually.
+    *block_size = BLOCK_SIZE;
+}
+int usbd_msc_sector_read(uint32_t sector, uint8_t *buffer, uint32_t length)
+{
+//    if (sector < 64) {
+    EEPROM_READ(sector * BLOCK_SIZE, buffer, length);
+//    }
+    return 0;
+}
+
+int usbd_msc_sector_write(uint32_t sector, uint8_t *buffer, uint32_t length)
+{
+//    if (sector < 64) {
+    EEPROM_ERASE(sector * BLOCK_SIZE, length);
+    EEPROM_WRITE(sector * BLOCK_SIZE, buffer, length);
+//    }
+    return 0;
+}
+
+#if 0
+void usbh_hid_set_report(uint8_t intf, uint8_t report_id, uint8_t report_type, uint8_t *report, uint8_t report_len)
+{
+    g_CapsLock_LEDOn_Status.usb = (report[0] & (1<<1) ? TRUE : FALSE);
+}
+
+void hid_mouse_test(void)
+{
+    HIDMouse[1] = HIDMouse[2] = 5;
+
+    while (hid_state == HID_STATE_BUSY) {}
+    int ret = usbd_ep_start_write(USBD_IF1_AL0_EP0_ADDR, HIDMouse, HID_MOUSE_DATA_LENGTH);
+    if (ret >= 0) {
+        hid_state = HID_STATE_BUSY;
+    }
+}
+
+void hid_keyboard_test(void)
+{
+    HIDKeyboard[2] = HID_KBD_USAGE_A;
+
+    while (hid_state == HID_STATE_BUSY) {}
+    int ret = usbd_ep_start_write(USBD_IF0_AL0_EP0_ADDR, HIDKeyboard, HID_KEYBOARD_DATA_LENGTH);
+    if (ret >= 0) {
+        hid_state = HID_STATE_BUSY;
+    }
+
+    while (hid_state == HID_STATE_BUSY) {}
+    DelayMs(30);
+    HIDKeyboard[2] = 0;
+    ret = usbd_ep_start_write(USBD_IF0_AL0_EP0_ADDR, HIDKeyboard, HID_KEYBOARD_DATA_LENGTH);
+    if (ret >= 0) {
+        hid_state = HID_STATE_BUSY;
+    }
+}
+#endif
 
 /*******************************************************************************
 * Function Name  : USB_ProcessEvent
@@ -82,40 +509,53 @@ BOOL USB_Ready = FALSE;
 *******************************************************************************/
 tmosEvents USB_ProcessEvent( tmosTaskID task_id, tmosEvents events )
 {
+  int ret;
+
   if ( events & START_USB_EVENT )
   {
     PFIC_EnableIRQ( USB_IRQn );
     return events ^ START_USB_EVENT;
   }
 
-  if ( events & USB_MOUSE_EVENT )
-  {
-    memcpy(pEP2_IN_DataBuf, HIDMouse, HID_MOUSE_DATA_LENGTH);
-    DevEP2_IN_Deal( HID_MOUSE_DATA_LENGTH );
-    return events ^ USB_MOUSE_EVENT;
-  }
-
   if ( events & USB_KEYBOARD_EVENT )
   {
-    memcpy(pEP1_IN_DataBuf, HIDKey, HID_KEYBOARD_DATA_LENGTH);
-    DevEP1_IN_Deal( HID_KEYBOARD_DATA_LENGTH );
+    if (hid_state != HID_STATE_BUSY) {
+      ret = usbd_ep_start_write(USBD_IF0_AL0_EP0_ADDR, HIDKeyboard, HID_KEYBOARD_DATA_LENGTH);
+      if (ret >= 0) {
+          hid_state = HID_STATE_BUSY;
+      }
+    }
     return events ^ USB_KEYBOARD_EVENT;
+  }
+
+  if ( events & USB_MOUSE_EVENT )
+  {
+    if (hid_state != HID_STATE_BUSY) {
+      ret = usbd_ep_start_write(USBD_IF1_AL0_EP0_ADDR, HIDMouse, HID_MOUSE_DATA_LENGTH);
+      if (ret >= 0) {
+          hid_state = HID_STATE_BUSY;
+      }
+    }
+    return events ^ USB_MOUSE_EVENT;
   }
 
   if ( events & USB_VOL_EVENT )
   {
-    memcpy(pEP3_IN_DataBuf, HIDVolume, HID_VOLUME_DATA_LENGTH);
-    DevEP3_IN_Deal( HID_VOLUME_DATA_LENGTH );
+    if (hid_state != HID_STATE_BUSY) {
+      ret = usbd_ep_start_write(USBD_IF2_AL0_EP0_ADDR, HIDVolume, HID_VOLUME_DATA_LENGTH);
+      if (ret >= 0) {
+          hid_state = HID_STATE_BUSY;
+      }
+    }
     return events ^ USB_VOL_EVENT;
   }
 
   if ( events & USB_TEST_EVENT )
   {
-    HIDMouse[1] = HIDMouse[2] = 2;
-    memcpy(pEP2_IN_DataBuf, HIDMouse, 4);
-    DevEP2_IN_Deal( 4 );
-//    pEP4_IN_DataBuf[0] = 'A';
-//    DevEP4_IN_Deal( 1 );
+#if 0
+    hid_keyboard_test();
+    hid_mouse_test();
+#endif
     tmos_start_task(usbTaskID, USB_TEST_EVENT, MS1_TO_SYSTEM_TIME(500));
     return events ^ USB_TEST_EVENT;
   }
@@ -132,533 +572,52 @@ tmosEvents USB_ProcessEvent( tmosTaskID task_id, tmosEvents events )
 void HAL_USBInit( void )
 {
   usbTaskID = TMOS_ProcessEventRegister( USB_ProcessEvent );
-  pEP0_RAM_Addr = EP0_Databuf;
-  pEP1_RAM_Addr = EP1_Databuf;
-  pEP2_RAM_Addr = EP2_Databuf;
-  pEP3_RAM_Addr = EP3_Databuf;
-  USB_DeviceInit();
-  tmos_start_task( usbTaskID, START_USB_EVENT, 0 );
+  /* support to cherry usb */
+  TMR0_TimerInit(FREQ_SYS / 1000);
+  TMR0_ITCfg(ENABLE, TMR0_3_IT_CYC_END);
+  PFIC_EnableIRQ(TMR0_IRQn);
+  PFIC_SetPriority(TMR0_IRQn, 20);
+  /* usb device init */
+  usb_device_init();
+  while (!usb_device_is_configured());
 }
 
-/*******************************************************************************
-* Function Name  : USB_DevTransProcess
-* Description    : USB中断传输处理
-* Input          : None
-* Return         : None
-*******************************************************************************/
-void USB_DevTransProcess( void )
+void usb_dc_low_level_init(void)
 {
-  UINT8 len, chtype;
-  UINT8 intflag, errflag = 0;
-
-  intflag = R8_USB_INT_FG;
-  if ( intflag & RB_UIF_TRANSFER )
-  {
-    if ( ( R8_USB_INT_ST & MASK_UIS_TOKEN ) != MASK_UIS_TOKEN )    // 非空闲
-    {
-      switch ( R8_USB_INT_ST & ( MASK_UIS_TOKEN | MASK_UIS_ENDP ) )
-      // 分析操作令牌和端点号
-      {
-        case UIS_TOKEN_IN : //USB传输事务令牌PID 10b 端点0
-        {
-          switch ( SetupReqCode )
-          {
-            case USB_GET_DESCRIPTOR :
-              len = SetupReqLen >= DevEP0SIZE ?
-                  DevEP0SIZE : SetupReqLen;    // 本次传输长度
-              memcpy( pEP0_DataBuf, pDescr, len ); /* 加载上传数据 */
-              SetupReqLen -= len;
-              pDescr += len;
-              R8_UEP0_T_LEN = len;
-              R8_UEP0_CTRL ^= RB_UEP_T_TOG;                             // 翻转
-              break;
-            case USB_SET_ADDRESS :
-              R8_USB_DEV_AD = ( R8_USB_DEV_AD & RB_UDA_GP_BIT ) | SetupReqLen;
-              R8_UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
-              break;
-            default :
-              R8_UEP0_T_LEN = 0;                                      // 状态阶段完成中断或者是强制上传0长度数据包结束控制传输
-              R8_UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
-              break;
-          }
-        }
-          break;
-
-        case UIS_TOKEN_OUT : //USB传输事务令牌PID 00b 端点0
-        {
-          len = R8_USB_RX_LEN;
-          if ( SetupReqCode == 0x09 )
-          {
-            if ( pEP0_DataBuf[1] )
-              USB_CapsLock_LEDOn = FALSE;    // Light off Caps Lock LED
-            else if ( pEP0_DataBuf[1] == 0 )
-              USB_CapsLock_LEDOn = TRUE;     // Light on Caps Lock LED
-          }
-        }
-          break;
-
-        case UIS_TOKEN_OUT | 1 :    //USB传输事务令牌PID 10b 端点1
-        {
-          if ( R8_USB_INT_ST & RB_UIS_TOG_OK )
-          {                       // 不同步的数据包将丢弃
-            len = R8_USB_RX_LEN;
-            DevEP1_OUT_Deal( len );
-          }
-        }
-          break;
-
-        case UIS_TOKEN_IN | 1 :     //USB传输事务令牌PID 00b 端点1
-          R8_UEP1_CTRL = ( R8_UEP1_CTRL & ~MASK_UEP_T_RES ) | UEP_T_RES_NAK;
-          break;
-
-        case UIS_TOKEN_OUT | 2 :    //USB传输事务令牌PID 10b 端点2
-        {
-          if ( R8_USB_INT_ST & RB_UIS_TOG_OK )
-          {                       // 不同步的数据包将丢弃
-            len = R8_USB_RX_LEN;
-            DevEP2_OUT_Deal( len );
-          }
-        }
-          break;
-
-        case UIS_TOKEN_IN | 2 :     //USB传输事务令牌PID 00b 端点2
-          R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~MASK_UEP_T_RES ) | UEP_T_RES_NAK;
-          break;
-
-        case UIS_TOKEN_OUT | 3 :    //USB传输事务令牌PID 10b 端点3
-        {
-          if ( R8_USB_INT_ST & RB_UIS_TOG_OK )
-          {                       // 不同步的数据包将丢弃
-            len = R8_USB_RX_LEN;
-            DevEP3_OUT_Deal( len );
-          }
-        }
-          break;
-
-        case UIS_TOKEN_IN | 3 :     //USB传输事务令牌PID 00b 端点3
-          R8_UEP3_CTRL = ( R8_UEP3_CTRL & ~MASK_UEP_T_RES ) | UEP_T_RES_NAK;
-          break;
-
-        case UIS_TOKEN_OUT | 4 :    //USB传输事务令牌PID 10b 端点4
-        {
-          if ( R8_USB_INT_ST & RB_UIS_TOG_OK )
-          {
-            R8_UEP4_CTRL ^= RB_UEP_R_TOG;
-            len = R8_USB_RX_LEN;
-            DevEP4_OUT_Deal( len );
-          }
-        }
-          break;
-
-        case UIS_TOKEN_IN | 4 :     //USB传输事务令牌PID 00b 端点4
-          R8_UEP4_CTRL ^= RB_UEP_T_TOG;
-          R8_UEP4_CTRL = ( R8_UEP4_CTRL & ~MASK_UEP_T_RES ) | UEP_T_RES_NAK;
-          break;
-
-        default :
-          break;
-      }
-      R8_USB_INT_FG = RB_UIF_TRANSFER;
-    }
-    if ( R8_USB_INT_ST & RB_UIS_SETUP_ACT )                  // Setup包处理
-    {
-      R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_ACK | UEP_T_RES_NAK;
-      SetupReqLen = pSetupReqPak->wLength;
-      SetupReqCode = pSetupReqPak->bRequest;
-      chtype = pSetupReqPak->bRequestType;
-
-      len = 0;
-      errflag = 0;
-      if ( ( pSetupReqPak->bRequestType & USB_REQ_TYP_MASK ) != USB_REQ_TYP_STANDARD )
-      {
-        switch ( SetupReqCode )
-        {
-          case 0x0a :
-            break;        //这个一定要有
-          case 0x09 :
-            break;
-          default :
-            errflag = 0xFF;
-        }
-      }
-      else /* 标准请求 */
-      {
-        switch ( SetupReqCode )
-        {
-          case USB_GET_DESCRIPTOR :
-          {
-            switch ( ( ( pSetupReqPak->wValue ) >> 8 ) )
-            {
-              case USB_DESCR_TYP_DEVICE :
-              {
-                pDescr = MyDevDescr;
-                len = MyDevDescr[0];
-              }
-                break;
-
-              case USB_DESCR_TYP_CONFIG :
-              {
-                pDescr = MyCfgDescr;
-                len = MyCfgDescr[2];
-              }
-                break;
-
-              case USB_DESCR_TYP_REPORT :
-              {
-                if ( ( ( pSetupReqPak->wIndex ) & 0xff ) == 0 )         //接口0报表描述符
-                {
-                  pDescr = KeyRepDesc;                                  //数据准备上传
-                  len = sizeof( KeyRepDesc );
-                }
-                else if ( ( ( pSetupReqPak->wIndex ) & 0xff ) == 1 )    //接口1报表描述符
-                {
-                  pDescr = MouseRepDesc;                                //数据准备上传
-                  len = sizeof( MouseRepDesc );
-                }
-                else if ( ( ( pSetupReqPak->wIndex ) & 0xff ) == 2 )    //接口2报表描述符
-                {
-                  pDescr = VolumeRepDesc;                               //数据准备上传
-                  len = sizeof( VolumeRepDesc );                        //如果有更多接口，该标准位应该在最后一个接口配置完成后有效
-//                  tmos_start_task(usbTaskID, USB_TEST_EVENT, MS1_TO_SYSTEM_TIME(500));
-                }
-                else
-                {
-                  len = 0xff;                                           //本程序只有4个接口，这句话正常不可能执行
-                }
-              }
-                break;
-
-              case USB_DESCR_TYP_STRING :
-              {
-                switch ( ( pSetupReqPak->wValue ) & 0xff )
-                {
-                  case 1 :
-                    pDescr = MyManuInfo;
-                    len = MyManuInfo[0];
-                    break;
-                  case 2 :
-                    pDescr = MyProdInfo;
-                    len = MyProdInfo[0];
-                    break;
-                  case 0 :
-                    pDescr = MyLangDescr;
-                    len = MyLangDescr[0];
-                    break;
-                  default :
-                    errflag = 0xFF;                               // 不支持的字符串描述符
-                    break;
-                }
-              }
-                break;
-
-              default :
-                errflag = 0xff;
-                break;
-            }
-            if ( SetupReqLen > len )
-              SetupReqLen = len;      //实际需上传总长度
-            len = ( SetupReqLen >= DevEP0SIZE ) ?
-                DevEP0SIZE : SetupReqLen;
-            memcpy( pEP0_DataBuf, pDescr, len );
-            pDescr += len;
-          }
-            break;
-
-          case USB_SET_ADDRESS :
-            SetupReqLen = ( pSetupReqPak->wValue ) & 0xff;
-            break;
-
-          case USB_GET_CONFIGURATION :
-            pEP0_DataBuf[0] = DevConfig;
-            if ( SetupReqLen > 1 )
-              SetupReqLen = 1;
-            break;
-
-          case USB_SET_CONFIGURATION :
-            DevConfig = ( pSetupReqPak->wValue ) & 0xff;
-            break;
-
-          case USB_CLEAR_FEATURE :
-          {
-            if ( ( pSetupReqPak->bRequestType & USB_REQ_RECIP_MASK ) == USB_REQ_RECIP_ENDP )    // 端点
-            {
-              switch ( ( pSetupReqPak->wIndex ) & 0xff )
-              {
-                case 0x82 :
-                  R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~( RB_UEP_T_TOG | MASK_UEP_T_RES ) ) | UEP_T_RES_NAK;
-                  break;
-                case 0x02 :
-                  R8_UEP2_CTRL = ( R8_UEP2_CTRL & ~( RB_UEP_R_TOG | MASK_UEP_R_RES ) ) | UEP_R_RES_ACK;
-                  break;
-                case 0x81 :
-                  R8_UEP1_CTRL = ( R8_UEP1_CTRL & ~( RB_UEP_T_TOG | MASK_UEP_T_RES ) ) | UEP_T_RES_NAK;
-                  break;
-                case 0x01 :
-                  R8_UEP1_CTRL = ( R8_UEP1_CTRL & ~( RB_UEP_R_TOG | MASK_UEP_R_RES ) ) | UEP_R_RES_ACK;
-                  break;
-                default :
-                  errflag = 0xFF;                                 // 不支持的端点
-                  break;
-              }
-            }
-            else
-              errflag = 0xFF;
-          }
-            break;
-
-          case USB_GET_INTERFACE :
-            pEP0_DataBuf[0] = 0x00;
-            if ( SetupReqLen > 1 )
-              SetupReqLen = 1;
-            break;
-
-          case USB_GET_STATUS :
-            pEP0_DataBuf[0] = 0x00;
-            pEP0_DataBuf[1] = 0x00;
-            if ( SetupReqLen > 2 )
-              SetupReqLen = 2;
-            break;
-
-          default :
-            errflag = 0xff;
-            break;
-        }
-      }
-      if ( errflag == 0xff )        // 错误或不支持
-      {
-//                  SetupReqCode = 0xFF;
-        R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_STALL | UEP_T_RES_STALL;    // STALL
-      }
-      else
-      {
-        if ( chtype & 0x80 )     // 上传
-        {
-          len = ( SetupReqLen > DevEP0SIZE ) ?
-              DevEP0SIZE : SetupReqLen;
-          SetupReqLen -= len;
-        }
-        else
-          len = 0;        // 下传
-        R8_UEP0_T_LEN = len;
-        R8_UEP0_CTRL = RB_UEP_R_TOG | RB_UEP_T_TOG | UEP_R_RES_ACK | UEP_T_RES_ACK;    // 默认数据包是DATA1
-      }
-
-      R8_USB_INT_FG = RB_UIF_TRANSFER;
-    }
-  }
-  else if ( intflag & RB_UIF_BUS_RST )
-  {
-    R8_USB_DEV_AD = 0;
-    R8_UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
-    R8_UEP1_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK | RB_UEP_AUTO_TOG;
-    R8_UEP2_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK | RB_UEP_AUTO_TOG;
-    R8_UEP3_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK | RB_UEP_AUTO_TOG;
-    R8_USB_INT_FG = RB_UIF_BUS_RST;
-  }
-  else if ( intflag & RB_UIF_SUSPEND )
-  {
-    if ( R8_USB_MIS_ST & RB_UMS_SUSPEND )
-    {
-      USB_Ready = FALSE;
-      tmos_clear_event( halTaskID, USB_READY_EVENT );
-    }   // 挂起
-    else
-    {
-      tmos_start_task( halTaskID, USB_READY_EVENT, 20 );
-    }   // 唤醒
-    R8_USB_INT_FG = RB_UIF_SUSPEND;
-  }
-  else
-  {
-    R8_USB_INT_FG = intflag;
-  }
+  extern void USB_IRQHandler(void);
+  PFIC_EnableIRQ(USB_IRQn);
+  PFIC_EnableFastINT0(USB_IRQn, (uint32_t)(void *)USB_IRQHandler);
 }
 
-/*******************************************************************************
-* Function Name  : DevEP1_OUT_Deal
-* Description    : 端点1数据处理(HID键盘-不使用)
-* Input          : None
-* Return         : None
-*******************************************************************************/
-void DevEP1_OUT_Deal( UINT8 l )
+void usb_hc_low_level_init(void)
 {
-  UINT8 i;
-
-  for ( i = 0; i < l; i++ )
-  {
-    pEP1_IN_DataBuf[i] = ~pEP1_OUT_DataBuf[i];
-  }
-  DevEP1_IN_Deal( l );
+  PFIC_EnableIRQ(USB2_IRQn);
 }
 
-/*******************************************************************************
-* Function Name  : DevEP2_OUT_Deal
-* Description    : 端点2数据处理(HID鼠标-不使用)
-* Input          : None
-* Return         : None
-*******************************************************************************/
-void DevEP2_OUT_Deal( UINT8 l )
-{
-  UINT8 i;
-
-  for ( i = 0; i < l; i++ )
-  {
-    pEP2_IN_DataBuf[i] = ~pEP2_OUT_DataBuf[i];
-  }
-  DevEP2_IN_Deal( l );
-}
-
-/*******************************************************************************
-* Function Name  : DevEP3_OUT_Deal
-* Description    : 端点3数据处理(HID音量控制-不使用)
-* Input          : None
-* Return         : None
-*******************************************************************************/
-void DevEP3_OUT_Deal( UINT8 l )
-{
-  UINT8 i;
-
-  for ( i = 0; i < l; i++ )
-  {
-    pEP3_IN_DataBuf[i] = ~pEP3_OUT_DataBuf[i];
-  }
-  DevEP3_IN_Deal( l );
-}
-
-/*******************************************************************************
-* Function Name  : DevEP4_OUT_Deal
-* Description    : 端点4数据处理(与上位机通信)
-* Input          : None
-* Return         : None
-* Protocol       : address[0] 输入数据长度
-*                  address[1] 传输类型：E-错误 S-成功 C-改变按键层 X-改变额外按键层
-*                                      R-报告层信息 L-改变LED默认模式 D-改变默认蓝牙设备
-*                  address[2] 选中列数(address[1]为E或S则保留)
-*                  address[3] 数据1
-*                  address[4] 数据2
-*                  ...
-*******************************************************************************/
-void DevEP4_OUT_Deal( UINT8 l )
-{
-  UINT8 i, j;
-  UINT8 length = 0;
-
-  if (pEP4_OUT_DataBuf[0] != l) { // 接收长度错误
-    pEP4_IN_DataBuf[0] = 4;
-    pEP4_IN_DataBuf[1] = 'E';
-    pEP4_IN_DataBuf[3] = USB_ERR_LENGTH;
-    { // 限时打印
-      OLED_UI_add_SHOWINFO_task("[USB L ER]");
-      OLED_UI_add_CANCELINFO_delay_task(3000);
-    }
-    DevEP4_IN_Deal( 4 );
-    return;
-  }
-
-  switch (pEP4_OUT_DataBuf[1]) {
-    case 'E':
-      break;
-    case 'S':
-      break;
-    case 'C':
-      for (i = 0; i < l-3; i++) {
-        CustomKey[pEP4_OUT_DataBuf[2]][i] = pEP4_OUT_DataBuf[i+3];
-      }
-      FLASH_Write_KeyArray( );
-      pEP4_IN_DataBuf[0] = 2;
-      pEP4_IN_DataBuf[1] = 'S';
-      { // 限时打印
-        OLED_UI_add_SHOWINFO_task("[D USB OK]");
-        OLED_UI_add_CANCELINFO_delay_task(3000);
-      }
-      DevEP4_IN_Deal( 2 );    // 发送-成功
-      break;
-    case 'X':
-      for (i = 0; i < l-3; i++) {
-        Extra_CustomKey[pEP4_OUT_DataBuf[2]][i] = pEP4_OUT_DataBuf[i+3];
-      }
-      FLASH_Write_KeyArray( );
-      pEP4_IN_DataBuf[0] = 2;
-      pEP4_IN_DataBuf[1] = 'S';
-      { // 限时打印
-        OLED_UI_add_SHOWINFO_task("[X USB OK]");
-        OLED_UI_add_CANCELINFO_delay_task(3000);
-      }
-      DevEP4_IN_Deal( 2 );    // 发送-成功
-      break;
-    case 'L':
-      if (pEP4_OUT_DataBuf[3] >= 0 && pEP4_OUT_DataBuf[3] <= 4) {
-        FLASH_Write_LEDStyle( pEP4_OUT_DataBuf[3] );
-        pEP4_IN_DataBuf[0] = 2;
-        pEP4_IN_DataBuf[1] = 'S';
-        { // 限时打印
-          OLED_UI_add_SHOWINFO_task("[L USB OK]");
-          OLED_UI_add_CANCELINFO_delay_task(3000);
-        }
-        DevEP4_IN_Deal( 2 );    // 发送-成功
-      } else {
-        pEP4_IN_DataBuf[0] = 4;
-        pEP4_IN_DataBuf[1] = 'E';
-        { // 限时打印
-          OLED_UI_add_SHOWINFO_task("[L USB ER]");
-          OLED_UI_add_CANCELINFO_delay_task(3000);
-        }
-        pEP4_IN_DataBuf[3] = USB_DAT_INVALID; // 发送-数据不合法
-        DevEP4_IN_Deal( 4 );
-      }
-      break;
-    case 'D':
-      if (pEP4_OUT_DataBuf[3] >= 1 && pEP4_OUT_DataBuf[3] <= 6) {
-        FLASH_Write_DeviceID( pEP4_OUT_DataBuf[3] );
-        pEP4_IN_DataBuf[0] = 2;
-        pEP4_IN_DataBuf[1] = 'S';
-        { // 限时打印
-          OLED_UI_add_SHOWINFO_task("[D USB OK]");
-          OLED_UI_add_CANCELINFO_delay_task(3000);
-        }
-        DevEP4_IN_Deal( 2 );    // 发送-成功
-      } else {
-        pEP4_IN_DataBuf[0] = 4;
-        pEP4_IN_DataBuf[1] = 'E';
-        { // 限时打印
-          OLED_UI_add_SHOWINFO_task("[D USB ER]");
-          OLED_UI_add_CANCELINFO_delay_task(3000);
-        }
-        pEP4_IN_DataBuf[3] = USB_DAT_INVALID; // 发送-数据不合法
-        DevEP4_IN_Deal( 4 );
-      }
-      break;
-    case 'R':
-      pEP4_IN_DataBuf[0] = 3 + ROW_SIZE * 2;
-      pEP4_IN_DataBuf[1] = 'R';
-      pEP4_IN_DataBuf[2] = pEP4_OUT_DataBuf[2];
-      for (j = 0; j < ROW_SIZE; j++) {
-        pEP4_IN_DataBuf[3 + j] = CustomKey[pEP4_OUT_DataBuf[2]][j];
-      }
-      for (j = 0; j < ROW_SIZE; j++) {
-        pEP4_IN_DataBuf[3 + ROW_SIZE + j] = Extra_CustomKey[pEP4_OUT_DataBuf[2]][j];
-      }
-      DevEP4_IN_Deal( pEP4_IN_DataBuf[0] );
-      if (pEP4_OUT_DataBuf[2] == COL_SIZE - 1) { // 限时打印
-        OLED_UI_add_SHOWINFO_task("[R USB RP]");
-        OLED_UI_add_CANCELINFO_delay_task(3000);
-      }
-      break;
-    default:
-      pEP4_IN_DataBuf[0] = 4;
-      pEP4_IN_DataBuf[1] = 'E';
-      pEP4_IN_DataBuf[3] = USB_ERR_UNKNOWN;
-      { // 限时打印
-        OLED_UI_add_SHOWINFO_task("[R USB ER]");
-        OLED_UI_add_CANCELINFO_delay_task(3000);
-      }
-      DevEP4_IN_Deal( 4 );
-  }
-}
+volatile uint32_t timer_count_user = 0;
 
 __INTERRUPT
 __HIGH_CODE
-void USB_IRQHandler( void )     //USB中断服务程序,使用寄存器组1
+void TMR0_IRQHandler(void)
 {
-    USB_DevTransProcess();
+  /*!< Timer 0 IRQ */
+  if (TMR0_GetITFlag(TMR0_3_IT_CYC_END)) {
+    /*!< Clear Pending flag */
+    TMR0_ClearITFlag(TMR0_3_IT_CYC_END);
+
+    /*!< Updata the ms count */
+    timer_count_user++;
+    /*!< Set timing time 1ms */
+    R32_TMR0_CNT_END = GetSysClock() / 1000;
+    R8_TMR0_CTRL_MOD = RB_TMR_ALL_CLEAR;
+    R8_TMR0_CTRL_MOD = RB_TMR_COUNT_EN;
+
+    /*!< Enable interrupt */
+    TMR0_ITCfg(ENABLE, TMR0_3_IT_CYC_END);
+  }
+}
+
+uint32_t chey_board_millis(void)
+{
+  return timer_count_user;
 }

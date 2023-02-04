@@ -9,7 +9,7 @@
 #ifndef __PS2_H
   #define __PS2_H
  
-  #include "CH58x_common.h"
+  #include "HAL.h"
  
   #define PS2CLK_Pin		GPIO_Pin_15
   #define PS2DATA_Pin		GPIO_Pin_14
@@ -41,32 +41,13 @@
   #define SET_RESOLUTION      	0XE8
   #define SET_SCALING21       	0XE7
   #define SET_SCALING11       	0XE6
-	
-  typedef union {
-      struct {
-              unsigned char LeftBtn : 1;
-              unsigned char RightBtn : 1;
-              unsigned char MiddleBtn : 1;
-              unsigned char Always1 : 1;
-              unsigned char Xsignbit : 1;
-              unsigned char Xspinbit : 1;
-              unsigned char Xoverflow : 1;
-              unsigned char Yoverflow : 1;
-              signed char XMovement : 8;
-              signed char YMovement : 8;
-              signed char ZMovement : 8;
-          };
-      uint8_t data[4];
-  }Mousestate;
 
-  extern Mousestate* const PS2dat;
   extern uint8_t PS2_byte_cnt, PS2_data_ready;
-  extern BOOL enable_TP;
 
   //declare functions
   uint8_t PS2_ReadByte(uint8_t* dat);
   uint8_t PS2_WriteByte(uint8_t dat);
-  uint8_t PS2_ReadMouseData(Mousestate* dat);
+  uint8_t PS2_ReadMouseData(Mouse_Data_t* dat);
   uint8_t PS2_Config(uint8_t reg, uint8_t res);
   void PS2_En_Data_Report(void);
   void PS2_Dis_Data_Report(void);

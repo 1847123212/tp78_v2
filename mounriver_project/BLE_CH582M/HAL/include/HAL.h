@@ -17,6 +17,26 @@ extern "C"
 {
 #endif
 
+#include "CH58x_common.h"
+
+/* HID data format */
+typedef union {
+    struct {
+        unsigned char LeftBtn : 1;
+        unsigned char RightBtn : 1;
+        unsigned char MiddleBtn : 1;
+        unsigned char Always1 : 1;
+        unsigned char Xsignbit : 1;
+        unsigned char Xspinbit : 1;
+        unsigned char Xoverflow : 1;
+        unsigned char Yoverflow : 1;
+        signed char XMovement : 8;
+        signed char YMovement : 8;
+        signed char ZMovement : 8;
+    };
+    uint8_t data[4];
+}Mouse_Data_t;
+
 #include "RTC.h"
 #include "SLEEP.h"	
 #include "LED.h"
@@ -50,7 +70,7 @@ extern "C"
 #define HAL_REG_INIT_EVENT                  0x2000
 #define HAL_TEST_EVENT                      0x4000
 
-// hal sys_message
+/* hal sys_message */
 #define MESSAGE_UART                        0xA0    // UART message
 #define UART0_MESSAGE                       (MESSAGE_UART|0 )    // UART0 message
 #define UART1_MESSAGE                       (MESSAGE_UART|1 )    // UART1 message
@@ -62,12 +82,18 @@ extern "C"
 #define HID_VOLUME_DATA_LENGTH              1
 #define HID_DATA_LENGTH                     16
 
-#define FLASH_ADDR_CustomKey                (8*1024)      // 从8K地址开始存放键盘布局，map空余空间：0x4~0x210C
-#define FLASH_ADDR_Extra_CustomKey          (9*1024)      // 从9K地址开始存放键盘额外布局
-#define FLASH_ADDR_LEDStyle                 (10*1024)     // 背光样式
-#define FLASH_ADDR_BLEDevice                (10*1024+4)   // 蓝牙默认连接设备编号
-#define FLASH_ADDR_RForBLE                  (10*1024+8)   // 启动默认RF模式或者BLE模式
-#define FLASH_ADDR_MPR121_ALG_Param         (10*1024+12)  // MPR121算法参数存储
+/* CodeFlash 基地址0x00000 */
+/* 0x0000~0x4FFFF 预留给程序 */
+#define CODEFLASH_ADDR_START                (0x50000)
+#define CODEFLASH_LENGTH                    (0x18000)     // 结束地址0x67FFF(预留0x7FFF)
+
+/* DataFlash 基地址0x70000 */
+#define DATAFLASH_ADDR_CustomKey            (8*1024)      // 从8K地址开始存放键盘布局，map空余空间：0x4~0x210C
+#define DATAFLASH_ADDR_Extra_CustomKey      (9*1024)      // 从9K地址开始存放键盘额外布局
+#define DATAFLASH_ADDR_LEDStyle             (10*1024)     // 背光样式
+#define DATAFLASH_ADDR_BLEDevice            (10*1024+4)   // 蓝牙默认连接设备编号
+#define DATAFLASH_ADDR_RForBLE              (10*1024+8)   // 启动默认RF模式或者BLE模式
+#define DATAFLASH_ADDR_MPR121_ALG_Param     (10*1024+12)  // MPR121算法参数存储
 
 #define IDLE_MAX_PERIOD                     240           // idle_cnt大于该值则进入屏保，单位为500ms
 #define LP_MAX_PERIOD                       480           // idle_cnt大于该值则进入低功耗模式，单位为500ms
@@ -77,27 +103,11 @@ extern "C"
 #define MOTOR_STOP()                        { GPIOB_ResetBits( MOTOR_PIN ); }
 #define MOTOR_Init()                        { GPIOB_SetBits( MOTOR_PIN ); GPIOB_ModeCfg( MOTOR_PIN, GPIO_ModeOut_PP_5mA ); GPIOB_ResetBits( MOTOR_PIN ); }
 
-typedef struct HID_ProcessFunc
-{
-    void (*keyboard_func)();  // 按键处理函数
-    void (*mouse_func)();     // 鼠标处理函数
-    void (*volume_func)();    // 音量处理函数
-}HID_ProcessFunc_s;
-
-typedef struct HW_ProcessFunc
-{
-    void (*battery_func)();   // 电量处理函数
-    void (*ws2812_func)();    // 背光LED处理函数
-    void (*msgcp_func)();     // I2C核间通信处理函数
-    void (*touchbar_func)();  // 触摸条处理函数
-}HW_ProcessFunc_s;
-
-typedef struct SW_ProcessFunc
-{
-    void (*paintedegg_func)();        // 彩蛋处理函数
-    void (*oled_capslock_func)();     // 大小写状态OLED处理函数
-    void (*oled_UBstatus_func)();     // USB或BLE/RF状态OLED处理函数
-}SW_ProcessFunc_s;
+/* CapsLock LEDOn Status */
+#define USB_CAPSLOCK_LEDON_BIT              0x1
+#define BLE_CAPSLOCK_LEDON_BIT              0x2
+#define RF_CAPSLOCK_LEDON_BIT               0x4
+#define UI_CAPSLOCK_LEDON_BIT               0x80
 
 typedef struct tag_uart_package
 {
@@ -105,25 +115,67 @@ typedef struct tag_uart_package
   uint8            *pData;
 } uartPacket_t;
 
+typedef struct _CapsLock_LEDOn_Status_t
+{
+    uint8_t usb : 1;
+    uint8_t ble : 1;
+    uint8_t rf : 1;
+    uint8_t reserved : 4;
+    uint8_t ui : 1;
+}CapsLock_LEDOn_Status_t;
+
+typedef struct _Ready_Status_t
+{
+    uint8_t usb : 1;
+    uint8_t ble : 1;
+    uint8_t rf : 1;
+    uint8_t usb_l : 1;
+    uint8_t ble_l : 1;
+    uint8_t rf_l : 1;
+    uint8_t cp : 1;
+    uint8_t reserved : 1;
+}Ready_Status_t;
+
+typedef struct _Enable_Status_t
+{
+    uint8_t ble : 1;
+    uint8_t motor : 1;
+    uint8_t tp : 1;
+    uint8_t reserved : 5;
+}Enable_Status_t;
+
 /*********************************************************************
  * GLOBAL VARIABLES
  */
 extern UINT8 HID_DATA[HID_DATA_LENGTH];
 extern UINT8* HIDMouse;
-extern UINT8* HIDKey;
+extern UINT8* HIDKeyboard;
 extern UINT8* HIDVolume;
 
-extern BOOL CP_Ready;
-extern BOOL enable_BLE;
 extern BOOL priority_USB;
 extern tmosTaskID halTaskID;
-extern BOOL USB_CapsLock_LEDOn, BLE_CapsLock_LEDOn, RF_CapsLock_LEDOn;
-extern HID_ProcessFunc_s HID_ProcessFunc_v;
-extern SW_ProcessFunc_s SW_ProcessFunc_v;
+
+extern CapsLock_LEDOn_Status_t g_CapsLock_LEDOn_Status;
+extern Ready_Status_t g_Ready_Status;
+extern Enable_Status_t g_Enable_Status;
 
 /*********************************************************************
  * GLOBAL FUNCTIONS
  */
+
+void HID_KEYBOARD_Process( void );
+void HID_PS2TP_Process( void );
+void HID_I2CTP_Process( void );
+void HID_CapMouse_Process( void );
+void HID_VOL_Process( void );
+void SW_PaintedEgg_Process( void );
+void SW_OLED_Capslock_Process( void );
+void SW_OLED_UBStatus_Process( void );
+void HW_Battery_Process( void );
+void HW_WS2812_Process( void );
+void HW_MSG_CP_Process( void );
+void HW_TouchBar_Process( void );
+
 extern void HAL_Init( void );
 extern tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events );
 extern void CH58X_BLEInit( void );

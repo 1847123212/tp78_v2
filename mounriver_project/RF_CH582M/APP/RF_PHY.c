@@ -68,7 +68,7 @@ void RF_2G4StatusCallBack(uint8_t sta, uint8_t crc, uint8_t *rxBuf)
                             PRINT("%x ", rxBuf[i + 2]);
                             *((uint8_t*)&HID_dat + i) = rxBuf[i + 2];
                         }
-                        if (USB_Ready == TRUE) {
+                        if (g_Ready_Status.usb == TRUE) {
                             tmos_set_event(usbTaskID, 1<<HID_dat.label);
                         }
                         PRINT("\n");
@@ -108,7 +108,7 @@ void RF_2G4StatusCallBack(uint8_t sta, uint8_t crc, uint8_t *rxBuf)
                             PRINT("%x ", rxBuf[i + 2]);
                             *((uint8_t*)&HID_dat + i) = rxBuf[i + 2];
                         }
-                        if (USB_Ready == TRUE) {
+                        if (g_Ready_Status.usb == TRUE) {
                             tmos_set_event(usbTaskID, 1<<HID_dat.label);
                         }
                         PRINT("\n");

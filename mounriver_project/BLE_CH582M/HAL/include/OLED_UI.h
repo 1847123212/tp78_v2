@@ -15,7 +15,7 @@
   #define OLED_UI_MAX_SLOT          4     // UI槽的最多显示个数
   #define OLED_UI_MENU_MAX_LEN      3     // UI菜单每级最多选项个数(暂时不支持超过OLED屏幕显示范围)
 
-  #define OLED_UI_HIS_LEN           10                    // 保存OLED打印历史条数
+  #define OLED_UI_HIS_LEN           3                     // 保存OLED打印历史条数
   #define OLED_UI_HIS_DLEN          OLED_UI_STR_LEN_MAX   // 每条OLED打印历史长度
 
   #define OLED_UI_ICON_WIDTH        10
@@ -103,9 +103,8 @@
   }oled_ui_slot_structure;
 
   typedef struct oled_ui_menu_structure{
-    struct oled_ui_menu_structure* p[OLED_UI_MENU_MAX_LEN+1]; // 末位表示上级菜单指针
+    const struct oled_ui_menu_structure* p[OLED_UI_MENU_MAX_LEN+1]; // 末位表示上级菜单指针
     uint8_t text[OLED_UI_MENU_MAX_LEN][OLED_UI_STR_LEN_MAX];
-    uint8_t cur_idx;  // 表示实际菜单中当前选项index
     uint8_t cur_x;  // 表示当前菜单中使用RAM的x坐标
   }oled_ui_menu_structure;
 
@@ -127,7 +126,7 @@
   void OLED_UI_show_version(uint8_t ena);
   void OLED_UI_draw_empty_battery(void);
   void OLED_UI_draw_menu(oled_ui_swipe fresh_type);
-  void OLED_UI_smooth_select_cfg(uint8_t* str0, uint8_t* str1, uint8_t y0, uint8_t y1);
+  void OLED_UI_smooth_select_cfg(const uint8_t* str0, const uint8_t* str1, uint8_t y0, uint8_t y1);
   void OLED_UI_idle(uint8_t is_entrying);
   void OLED_UI_draw_thread_callback(void);
 

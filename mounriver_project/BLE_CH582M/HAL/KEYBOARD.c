@@ -9,8 +9,6 @@
  *******************************************************************************/
 
 #include "HAL.h"
-
-/* 彩蛋 */
 #include "snake.h"
 
 const uint32_t Row_Pin[ROW_SIZE] = {GPIO_Pin_9, GPIO_Pin_8, GPIO_Pin_6, GPIO_Pin_5, GPIO_Pin_3, GPIO_Pin_2};   //row 6 - 其它键盘布局需修改此处
@@ -82,28 +80,30 @@ static uint8_t (*KeyArr_Ptr)[ROW_SIZE] = CustomKey;
 static uint16_t KeyArr_ChangeTimes = 0;
 
 /*******************************************************************************
-* Function Name  : FLASH_Read_KeyArray
-* Description    : 从Flash读取按键矩阵
+* Function Name  : DATAFLASH_Read_KeyArray
+* Description    : 从DataFlash读取按键矩阵
 * Input          : None
 * Return         : None
 *******************************************************************************/
-void FLASH_Read_KeyArray( void )
+void DATAFLASH_Read_KeyArray( void )
 {
-  EEPROM_READ( FLASH_ADDR_CustomKey, CustomKey, COL_SIZE*ROW_SIZE );
-  EEPROM_READ( FLASH_ADDR_Extra_CustomKey, Extra_CustomKey, COL_SIZE*ROW_SIZE );
+  EEPROM_READ( DATAFLASH_ADDR_CustomKey, CustomKey, COL_SIZE*ROW_SIZE );
+  EEPROM_READ( DATAFLASH_ADDR_Extra_CustomKey, Extra_CustomKey, COL_SIZE*ROW_SIZE );
 }
 
 /*******************************************************************************
-* Function Name  : FLASH_Write_KeyArray
-* Description    : 将按键矩阵写入Flash
+* Function Name  : DATAFLASH_Write_KeyArray
+* Description    : 将按键矩阵写入DataFlash
 * Input          : None
 * Return         : 如果成功返回0
 *******************************************************************************/
-UINT8 FLASH_Write_KeyArray( void )
+UINT8 DATAFLASH_Write_KeyArray( void )
 {
   UINT8 s;
-  s = EEPROM_WRITE( FLASH_ADDR_CustomKey, CustomKey, COL_SIZE*ROW_SIZE );
-  s |= EEPROM_WRITE( FLASH_ADDR_Extra_CustomKey, Extra_CustomKey, COL_SIZE*ROW_SIZE );
+  EEPROM_ERASE( DATAFLASH_ADDR_CustomKey, COL_SIZE*ROW_SIZE );
+  EEPROM_ERASE( DATAFLASH_ADDR_Extra_CustomKey, COL_SIZE*ROW_SIZE );
+  s = EEPROM_WRITE( DATAFLASH_ADDR_CustomKey, CustomKey, COL_SIZE*ROW_SIZE );
+  s |= EEPROM_WRITE( DATAFLASH_ADDR_Extra_CustomKey, Extra_CustomKey, COL_SIZE*ROW_SIZE );
   return s;
 }
 
@@ -118,13 +118,16 @@ void KEYBOARD_Reset( void )
   uint8_t temp;
   memcpy(CustomKey, KeyArrary, COL_SIZE*ROW_SIZE);
   memcpy(Extra_CustomKey, Extra_KeyArrary, COL_SIZE*ROW_SIZE);
-  FLASH_Write_KeyArray( );
+  DATAFLASH_Write_KeyArray( );
   temp = 0;
-  EEPROM_WRITE( FLASH_ADDR_LEDStyle, &temp, 1 );   // default LED Style
+  EEPROM_ERASE( DATAFLASH_ADDR_LEDStyle, 1 );
+  EEPROM_WRITE( DATAFLASH_ADDR_LEDStyle, &temp, 1 );   // default LED Style
   temp = 1;
-  EEPROM_WRITE( FLASH_ADDR_BLEDevice, &temp, 1 );   // default BLE Device
+  EEPROM_ERASE( DATAFLASH_ADDR_BLEDevice, 1 );
+  EEPROM_WRITE( DATAFLASH_ADDR_BLEDevice, &temp, 1 );   // default BLE Device
   temp = 0;
-  EEPROM_WRITE( FLASH_ADDR_RForBLE, &temp, 1 );   // default BLE mode
+  EEPROM_ERASE( DATAFLASH_ADDR_BLEDevice, 1 );
+  EEPROM_WRITE( DATAFLASH_ADDR_RForBLE, &temp, 1 );   // default BLE mode
 }
 
 /*******************************************************************************
@@ -143,7 +146,7 @@ void KEYBOARD_ChangeKey( uint8_t dst_key, uint8_t src_key )
     if ( *(memaddr + i) == src_key ) *(memaddr + i) = dst_key;
     else if ( *(memaddr + i) == dst_key ) *(memaddr + i) = src_key;
   }
-  FLASH_Write_KeyArray( );
+  DATAFLASH_Write_KeyArray( );
 }
 
 /*******************************************************************************
@@ -186,12 +189,12 @@ UINT8 KEYBOARD_Custom_Function( void )
     } else if ( Keyboarddat->Key1 == KEY_Subtraction && Fn_Mode != Fn_Mode_VolumeDown ) { // 音量减模式
       Fn_Mode = Fn_Mode_VolumeDown;
       HIDVolume[0] |= Volume_Decr;
-      HID_ProcessFunc_v.volume_func();
+      HID_VOL_Process();
       Fn_cnt = 0;
     } else if ( Keyboarddat->Key1 == KEY_Equal && Fn_Mode != Fn_Mode_VolumeUp ) { // 音量加模式
       Fn_Mode = Fn_Mode_VolumeUp;
       HIDVolume[0] |= Volume_Incr;
-      HID_ProcessFunc_v.volume_func();
+      HID_VOL_Process();
       Fn_cnt = 0;
     } else if ( Keyboarddat->Key1 == KEY_Delete && Fn_Mode != Fn_Mode_PaintedEgg ) { // 彩蛋模式
       Fn_Mode = Fn_Mode_PaintedEgg;
@@ -269,13 +272,13 @@ UINT8 KEYBOARD_Custom_Function( void )
         break;
       case Fn_Mode_RForBLE:  // Fn+N切换RF或BLE模式后软件复位
         Fn_Mode = Fn_Mode_None;
-        if (RF_Ready == TRUE) FLASH_Write_RForBLE(0);
-        else FLASH_Write_RForBLE(1);
+        if (g_Ready_Status.rf == TRUE) DATAFLASH_Write_RForBLE(0);
+        else DATAFLASH_Write_RForBLE(1);
         SoftReset();
         break;
       case Fn_Mode_RFJumptoBoot:  // Fn+M发送0x7A让接收器进BOOT
         Fn_Mode = Fn_Mode_None;
-        if (RF_Ready == TRUE) {
+        if (g_Ready_Status.rf == TRUE) {
           tmos_set_event( RFTaskId, SBP_RF_JUMPBOOT_REPORT_EVT );  // RF JUMPBOOT事件
         }
         break;
@@ -286,12 +289,12 @@ UINT8 KEYBOARD_Custom_Function( void )
       case Fn_Mode_VolumeDown:  // Fn+减号减小音量 - 松开停止
         Fn_Mode = Fn_Mode_None;
         HIDVolume[0] &= ~Volume_Decr;
-        HID_ProcessFunc_v.volume_func();
+        HID_VOL_Process();
         break;
       case Fn_Mode_VolumeUp:  // Fn+加号增加音量
         Fn_Mode = Fn_Mode_None;
         HIDVolume[0] &= ~Volume_Incr;
-        HID_ProcessFunc_v.volume_func();
+        HID_VOL_Process();
         break;
       case Fn_Mode_PaintedEgg:  // Fn+Delete彩蛋
         Fn_Mode = Fn_Mode_None;
@@ -308,19 +311,20 @@ UINT8 KEYBOARD_Custom_Function( void )
         break;
       case Fn_Mode_DisEnableBLE:
         Fn_Mode = Fn_Mode_None; // Fn+波浪号关闭/开启蓝牙
-        if ( !BLE_Ready && !RF_Ready ) {
-          enable_BLE = !enable_BLE;
-          bStatus_t status = GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &enable_BLE );
+        if ( g_Ready_Status.ble == FALSE && g_Ready_Status.rf == FALSE ) {
+          g_Enable_Status.ble = !g_Enable_Status.ble;
+          uint8_t ena_ble = g_Enable_Status.ble;
+          bStatus_t status = GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &ena_ble );
           if ( status != SUCCESS ) OLED_UI_add_SHOWINFO_task("ERR %d", status);
-          else if ( enable_BLE ) OLED_UI_add_SHOWINFO_task("BLE ENA");
+          else if ( g_Enable_Status.ble == TRUE ) OLED_UI_add_SHOWINFO_task("BLE ENA");
           else OLED_UI_add_SHOWINFO_task("BLE DIS");
           OLED_UI_add_CANCELINFO_delay_task(3000);
         }
         break;
       case Fn_Mode_DisEnableTP:
         Fn_Mode = Fn_Mode_None; // Fn+T关闭/开启小红点
-        enable_TP = !enable_TP;
-        if ( enable_TP ) OLED_UI_add_SHOWINFO_task("TP ENA");
+        g_Enable_Status.tp = !g_Enable_Status.tp;
+        if ( g_Enable_Status.tp == TRUE ) OLED_UI_add_SHOWINFO_task("TP ENA");
         else OLED_UI_add_SHOWINFO_task("TP DIS");
         OLED_UI_add_CANCELINFO_delay_task(3000);
         break;
@@ -328,12 +332,12 @@ UINT8 KEYBOARD_Custom_Function( void )
         Fn_Mode = Fn_Mode_None;
         extern BOOL priority_USB;
         priority_USB = !priority_USB;
-        if ( USB_Ready && (BLE_Ready || RF_Ready) ) {
+        if ( g_Ready_Status.usb == TRUE && (g_Ready_Status.ble == TRUE || g_Ready_Status.rf == TRUE) ) {
           OLED_UI_ShowOK(26 + priority_USB * 30, 0, FALSE);
           OLED_UI_ShowOK(26 + !priority_USB * 30, 0, TRUE);
         }
         if ( priority_USB ) OLED_UI_add_SHOWINFO_task("PRI USB");
-        else if ( !RF_Ready ) OLED_UI_add_SHOWINFO_task("PRI BLE");
+        else if ( g_Ready_Status.rf == FALSE ) OLED_UI_add_SHOWINFO_task("PRI BLE");
         else OLED_UI_add_SHOWINFO_task("PRI RF");
         OLED_UI_add_CANCELINFO_delay_task(3000);
         break;
@@ -403,7 +407,7 @@ UINT8 KEYBOARD_Custom_Function( void )
 void KEYBOARD_Init( void )
 {
     uint8_t i;
-    FLASH_Read_KeyArray( );   // Flash载入按键
+    DATAFLASH_Read_KeyArray( );   // DataFlash载入按键
     CustomKey[12][5] = KEY_Fn;   // 保证上电Fn键在对应位置 - 其它键盘布局需修改此处
     for (i = 0; i < ROW_SIZE; i++) {
         Row_Pin_ALL |= Row_Pin[i];
@@ -465,7 +469,7 @@ void KEYBOARD_Detection( void )
             if (KeyArr_Ptr[current_colum][current_row] == KEY_Fn) {  // 功能键
                 Fn_state = 1;
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_MouseL) {    // 鼠标操作
-                PS2dat->data[0] |= 1 << KeyArr_Ptr[current_colum][current_row] - KEY_MouseL;
+                ((Mouse_Data_t*)HIDMouse)->data[0] |= 1 << KeyArr_Ptr[current_colum][current_row] - KEY_MouseL;
                 KEYBOARD_mouse_ready = 1;
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_LeftCTRL) {    // 特殊键
                 Keyboarddat->data[0] |= 1 << (KeyArr_Ptr[current_colum][current_row] - KEY_LeftCTRL);
@@ -483,7 +487,7 @@ void KEYBOARD_Detection( void )
             if (KeyArr_Ptr[current_colum][current_row] == KEY_Fn) {  // 功能键
                 Fn_state = 0;
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_MouseL) {    // 鼠标操作
-                PS2dat->data[0] &= ~(1 << KeyArr_Ptr[current_colum][current_row] - KEY_MouseL);
+                ((Mouse_Data_t*)HIDMouse)->data[0] &= ~(1 << KeyArr_Ptr[current_colum][current_row] - KEY_MouseL);
                 KEYBOARD_mouse_ready = 1;
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_LeftCTRL) {    // 特殊键
                 Keyboarddat->data[0] &= ~(1 << (KeyArr_Ptr[current_colum][current_row] - KEY_LeftCTRL));

@@ -56,11 +56,18 @@
 							<tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1731377187" name="GNU RISC-V Cross C Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler">
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.include.paths.1567947810" name="Include paths (-I)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/TMOS/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/FatFs}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/FatFs/port}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/StdPeriphDriver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/CherryUSB}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/CherryUSB/class/hid}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/CherryUSB/class/msc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/CherryUSB/common}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Packages/CherryUSB/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Startup}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/HAL/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Profile/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/StdPeriphDriver/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Ld}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/LIB}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/RVMSIS}&quot;"/>
@@ -133,14 +140,14 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="APP"/>
-						<entry excluding="Profile" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="HAL"/>
+						<entry excluding="include/KEY.h|MSG_CP.c|Profile|LED.c|include/PS2.h|KEY.c|include/MSG_CP.h|PS2.c|include/LED.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="HAL"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="LIB"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Ld"/>
+						<entry excluding="CherryUSB/class/hid/usbh_hid.h|CherryUSB/class/hid/usbh_hid.c|CherryUSB/class/msc/usbh_msc.h|CherryUSB/class/msc/usbh_msc.c|CherryUSB/class/wireless|CherryUSB/class/video|CherryUSB/class/vendor|CherryUSB/class/template|CherryUSB/class/printer|CherryUSB/class/mtp|CherryUSB/class/midi|CherryUSB/class/hub|CherryUSB/class/dfu|CherryUSB/class/cdc|CherryUSB/class/audio|CherryUSB/core/usbh_core.h|CherryUSB/core/usbh_core.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Packages"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Profile"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="RVMSIS"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Startup"/>
-						<entry excluding="CH57x_timer1.c|CH57x_adc.c|CH57x_timer3.c|CH57x_uart0.c|CH57x_usbdev.c|CH57x_uart2.c|CH57x_pwm.c|CH57x_usbhostClass.c|CH57x_timer0.c|CH57x_timer2.c|CH57x_uart3.c|CH57x_usbhostBase.c|CH57x_spi0.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="StdPeriphDriver"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="TMOS"/>
+						<entry excluding="CH57x_timer1.c|CH57x_adc.c|CH57x_timer3.c|CH57x_uart0.c|CH58x_spi1.c|CH57x_usbdev.c|CH57x_uart2.c|CH57x_pwm.c|CH58x_usb2dev.c|CH57x_usbhostClass.c|CH58x_usbhostBase.c|CH57x_timer0.c|CH57x_timer2.c|CH58x_usb2hostClass.c|CH58x_spi0.c|CH58x_usb2hostBase.c|CH57x_uart3.c|CH58x_usbhostClass.c|CH57x_usbhostBase.c|CH58x_timer3.c|CH57x_spi0.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="StdPeriphDriver"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -153,15 +160,6 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="obj"/>
-		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/000"/>
-		</configuration>
-		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/000"/>
-		</configuration>
-	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1008047074;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1008047074.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1731377187;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.2036806839">
@@ -171,4 +169,5 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="refreshScope"/>
 </cproject>

@@ -8,11 +8,16 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include TMOS/subdir.mk
 -include StdPeriphDriver/subdir.mk
 -include Startup/subdir.mk
 -include RVMSIS/subdir.mk
 -include Profile/subdir.mk
+-include Packages/FatFs/port/subdir.mk
+-include Packages/FatFs/subdir.mk
+-include Packages/CherryUSB/core/subdir.mk
+-include Packages/CherryUSB/class/msc/subdir.mk
+-include Packages/CherryUSB/class/hid/subdir.mk
+-include Packages/CherryUSB/subdir.mk
 -include HAL/subdir.mk
 -include APP/subdir.mk
 -include subdir.mk
@@ -54,7 +59,7 @@ all: BLE_CH582M.elf secondary-outputs
 
 # Tool invocations
 BLE_CH582M.elf: $(OBJS) $(USER_OBJS)
-	@	@	riscv-none-embed-gcc -march=rv32imac -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8 -mno-save-restore -Os -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections  -g -T "E:\tp78_v2\mounriver_project\BLE_CH582M\Ld\Link.ld" -nostartfiles -Xlinker --gc-sections -L"../" -L"E:\tp78_v2\mounriver_project\BLE_CH582M\LIB" -L"E:\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver" -Xlinker --print-memory-usage -Wl,-Map,"BLE_CH582M.map" --specs=nano.specs --specs=nosys.specs -o "BLE_CH582M.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	@	@	riscv-none-embed-gcc -march=rv32imac -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8 -mno-save-restore -Os -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections  -g -T "E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Ld\Link.ld" -nostartfiles -Xlinker --gc-sections -L"../" -L"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\LIB" -L"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver" -Xlinker --print-memory-usage -Wl,-Map,"BLE_CH582M.map" --specs=nano.specs --specs=nosys.specs -o "BLE_CH582M.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@	@
 BLE_CH582M.hex: BLE_CH582M.elf
 	@	riscv-none-embed-objcopy -O ihex "BLE_CH582M.elf"  "BLE_CH582M.hex"

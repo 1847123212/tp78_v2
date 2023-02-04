@@ -49,12 +49,12 @@ extern "C"
 /*
  * Read BLE device ID from Flash
  */
-extern void FLASH_Read_DeviceID( void );
+extern void DATAFLASH_Read_DeviceID( void );
 
 /*
  * Write BLE device ID to Flash
  */
-extern void FLASH_Write_DeviceID( uint8_t DeviceID );
+extern void DATAFLASH_Write_DeviceID( uint8_t DeviceID );
 
 /*
  * Task Initialization for the BLE Application
@@ -67,8 +67,7 @@ extern void HidEmu_Init( void );
 extern uint16 HidEmu_ProcessEvent( uint8 task_id, uint16 events );
 
 extern tmosTaskID hidEmuTaskId;
-extern BOOL BLE_Ready;
-extern uint8_t BLE_SelectHostIndex;
+
 extern uint8_t DeviceAddress[6];
 extern BOOL EnterPasskey_flag;
 extern uint32_t BLE_Passkey;

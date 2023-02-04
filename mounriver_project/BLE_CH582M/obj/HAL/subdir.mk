@@ -5,18 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../HAL/BATTERY.c \
+../HAL/BLE.c \
 ../HAL/CORE.c \
 ../HAL/HW_I2C.c \
 ../HAL/I2C_TP.c \
-../HAL/KEY.c \
 ../HAL/KEYBOARD.c \
-../HAL/LED.c \
+../HAL/MCU.c \
 ../HAL/MPR121.c \
-../HAL/MSG_CP.c \
 ../HAL/OLED.c \
 ../HAL/OLEDFONT.c \
 ../HAL/OLED_UI.c \
-../HAL/PS2.c \
+../HAL/RF_PHY.c \
 ../HAL/RTC.c \
 ../HAL/SLEEP.c \
 ../HAL/USB.c \
@@ -24,18 +23,17 @@ C_SRCS += \
 
 OBJS += \
 ./HAL/BATTERY.o \
+./HAL/BLE.o \
 ./HAL/CORE.o \
 ./HAL/HW_I2C.o \
 ./HAL/I2C_TP.o \
-./HAL/KEY.o \
 ./HAL/KEYBOARD.o \
-./HAL/LED.o \
+./HAL/MCU.o \
 ./HAL/MPR121.o \
-./HAL/MSG_CP.o \
 ./HAL/OLED.o \
 ./HAL/OLEDFONT.o \
 ./HAL/OLED_UI.o \
-./HAL/PS2.o \
+./HAL/RF_PHY.o \
 ./HAL/RTC.o \
 ./HAL/SLEEP.o \
 ./HAL/USB.o \
@@ -43,18 +41,17 @@ OBJS += \
 
 C_DEPS += \
 ./HAL/BATTERY.d \
+./HAL/BLE.d \
 ./HAL/CORE.d \
 ./HAL/HW_I2C.d \
 ./HAL/I2C_TP.d \
-./HAL/KEY.d \
 ./HAL/KEYBOARD.d \
-./HAL/LED.d \
+./HAL/MCU.d \
 ./HAL/MPR121.d \
-./HAL/MSG_CP.d \
 ./HAL/OLED.d \
 ./HAL/OLEDFONT.d \
 ./HAL/OLED_UI.d \
-./HAL/PS2.d \
+./HAL/RF_PHY.d \
 ./HAL/RTC.d \
 ./HAL/SLEEP.d \
 ./HAL/USB.d \
@@ -63,6 +60,6 @@ C_DEPS += \
 
 # Each subdirectory must supply rules for building sources it contributes
 HAL/%.o: ../HAL/%.c
-	@	@	riscv-none-embed-gcc -march=rv32imac -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8 -mno-save-restore -Os -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections  -g -DDEBUG=3 -I"E:\tp78_v2\mounriver_project\BLE_CH582M\Startup" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\HAL\include" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\APP\include" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\Profile\include" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\Ld" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\LIB" -I"E:\tp78_v2\mounriver_project\BLE_CH582M\RVMSIS" -std=gnu99 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
+	@	@	riscv-none-embed-gcc -march=rv32imac -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8 -mno-save-restore -Os -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections  -g -DDEBUG=3 -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs\port" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\CherryUSB" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\CherryUSB\class\hid" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\CherryUSB\class\msc" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\CherryUSB\common" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\CherryUSB\core" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Startup" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Profile\include" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Ld" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\LIB" -I"E:\Project\tp78_v2\mounriver_project\BLE_CH582M\RVMSIS" -std=gnu99 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 	@	@
 

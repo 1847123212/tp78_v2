@@ -264,7 +264,7 @@ SYMBOL TABLE:
 00003040 g     F .text	000000e0 tmos_start_task
 00006510 g     O .text	0000000a MyProdInfo
 000023f6 g     F .text	00000056 HAL_TimeInit
-2000175a g     O .bss	00000001 USB_Ready
+2000175a g     O .bss	00000001 g_Ready_Status.usb
 00002ba0 g     F .text	0000006a RF_ProcessEvent
 00000004 g       .highcodelalign	00000000 _highcode_lma
 00002c0a g     F .text	00000078 RF_Init
@@ -6352,7 +6352,7 @@ E:\Project\tp78\mounriver_project\RF_CH582M\obj/../HAL/USB.c:461
     2af0:	8309                	srli	a4,a4,0x2
     2af2:	00174713          	xori	a4,a4,1
     2af6:	8b05                	andi	a4,a4,1
-    2af8:	80e18523          	sb	a4,-2038(gp) # 2000175a <USB_Ready>
+    2af8:	80e18523          	sb	a4,-2038(gp) # 2000175a <g_Ready_Status.usb>
 E:\Project\tp78\mounriver_project\RF_CH582M\obj/../HAL/USB.c:469
     R8_USB_INT_FG = RB_UIF_SUSPEND;
     2afc:	4711                	li	a4,4
@@ -6464,8 +6464,8 @@ E:\Project\tp78_v2\mounriver_project\RF_CH582M\obj/../APP/RF_PHY.c:107
     2b6c:	00164703          	lbu	a4,1(a2)
     2b70:	fee7e3e3          	bltu	a5,a4,2b56 <RF_2G4StatusCallBack+0x56>
 E:\Project\tp78_v2\mounriver_project\RF_CH582M\obj/../APP/RF_PHY.c:111
-                        if (USB_Ready == TRUE) {
-    2b74:	80a1c583          	lbu	a1,-2038(gp) # 2000175a <USB_Ready>
+                        if (g_Ready_Status.usb == TRUE) {
+    2b74:	80a1c583          	lbu	a1,-2038(gp) # 2000175a <g_Ready_Status.usb>
     2b78:	4785                	li	a5,1
     2b7a:	fcf598e3          	bne	a1,a5,2b4a <RF_2G4StatusCallBack+0x4a>
 E:\Project\tp78_v2\mounriver_project\RF_CH582M\obj/../APP/RF_PHY.c:112

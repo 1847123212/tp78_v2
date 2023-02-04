@@ -18,8 +18,6 @@ uint8_t PS2_bit_cnt = 0,
         PS2_byte = 0,
         PS2_high_cnt = 0,
         PS2_data_ready = 0;
-BOOL enable_TP = TRUE;   // 使能或失能小红点
-Mousestate* const PS2dat = (Mousestate*)&HID_DATA[1];
 
 /*******************************************************************************
 * Function Name  : PS2_WaitCLKState
@@ -143,7 +141,7 @@ uint8_t PS2_WriteByte(uint8_t dat)
 * Input          : dat - 将接收到的内容放到dat指针指向的空间中(dat指向的空间应当占4byte)
 * Return         : 成功返回0, 失败返回1
 *******************************************************************************/
-uint8_t PS2_ReadMouseData(Mousestate* dat)
+uint8_t PS2_ReadMouseData(Mouse_Data_t* dat)
 {
   int i;
   if (PS2_ReadByte((uint8_t*)dat->data) != 0) return 1;
@@ -220,7 +218,7 @@ void PS2_IT_handler(void)
 //    }
     } else if (PS2_bit_cnt == 11) {   //停止位
       if ((PS2_byte_cnt == 0 && (PS2_byte & 0x8)) || PS2_byte_cnt > 0) {    //检查Always1位是否为1
-        if ( PS2_byte_cnt > 0 ) PS2dat->data[PS2_byte_cnt] = PS2_byte;  //小红点不接受按键信息
+        if ( PS2_byte_cnt > 0 ) ((Mouse_Data_t*)HIDMouse)->data[PS2_byte_cnt] = PS2_byte;  //小红点不接受按键信息
         PS2_byte_cnt++;
       }
       PS2_Dis_Data_Report();

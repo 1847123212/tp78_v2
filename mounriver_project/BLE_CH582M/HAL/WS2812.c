@@ -16,15 +16,15 @@ static uint8_t style_dir = 0;
 static uint32_t style_cnt = 0;
 
 /*******************************************************************************
-* Function Name  : FLASH_Read_LEDStyle
-* Description    : 从Flash读取LED样式
+* Function Name  : DATAFLASH_Read_LEDStyle
+* Description    : 从DataFlash读取LED样式
 * Input          : None
 * Return         : LED_Style_Number
 *******************************************************************************/
-uint8_t FLASH_Read_LEDStyle( void )
+uint8_t DATAFLASH_Read_LEDStyle( void )
 {
   uint8_t LED_Style_Number;
-  EEPROM_READ( FLASH_ADDR_LEDStyle, &LED_Style_Number, 1 );
+  EEPROM_READ( DATAFLASH_ADDR_LEDStyle, &LED_Style_Number, 1 );
   LED_Change_flag = 1;
   switch (LED_Style_Number)
   {
@@ -52,18 +52,16 @@ uint8_t FLASH_Read_LEDStyle( void )
 }
 
 /*******************************************************************************
-* Function Name  : FLASH_Write_LEDStyle
-* Description    : 将LED样式写入Flash
+* Function Name  : DATAFLASH_Write_LEDStyle
+* Description    : 将LED样式写入DataFlash
 * Input          : LED_Style_Number
 * Return         : None
 *******************************************************************************/
-void FLASH_Write_LEDStyle( uint8_t LED_Style_Number )
+void DATAFLASH_Write_LEDStyle( uint8_t LED_Style_Number )
 {
   uint8_t check;
-  do {
-    EEPROM_WRITE( FLASH_ADDR_LEDStyle, &LED_Style_Number, 1 );
-    EEPROM_READ( FLASH_ADDR_LEDStyle, &check, 1 );
-  } while (check != LED_Style_Number);
+  EEPROM_ERASE( DATAFLASH_ADDR_LEDStyle, 1 );
+  EEPROM_WRITE( DATAFLASH_ADDR_LEDStyle, &LED_Style_Number, 1 );
 }
 
 /*******************************************************************************

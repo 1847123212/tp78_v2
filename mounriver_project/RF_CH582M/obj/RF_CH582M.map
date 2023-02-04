@@ -4929,9 +4929,9 @@ END GROUP
                 0x0000000020001758        0x1 ./HAL/LED.o
  .sbss.preBlinkState
                 0x0000000020001759        0x1 ./HAL/LED.o
- .sbss.USB_Ready
+ .sbss.g_Ready_Status.usb
                 0x000000002000175a        0x1 ./HAL/USB.o
-                0x000000002000175a                USB_Ready
+                0x000000002000175a                g_Ready_Status.usb
  .sbss.nCO2401  0x000000002000175b        0x1 E:\Project\tp78_v2\mounriver_project\RF_CH582M\LIB\libCH58xBLE.a(rfend.o)
                 0x000000002000175b                nCO2401
  .sbss.nGA2401  0x000000002000175c        0x1 E:\Project\tp78_v2\mounriver_project\RF_CH582M\LIB\libCH58xBLE.a(rfend.o)

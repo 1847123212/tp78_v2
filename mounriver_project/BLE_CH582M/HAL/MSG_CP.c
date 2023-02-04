@@ -26,7 +26,7 @@ uint8_t MSG_CP_Init(char* buf)
   CP_WAKEUP_GPIO(SetBits)( CP_WAKEUP_PIN );
   CP_WAKEUP_GPIO(ModeCfg)( CP_WAKEUP_PIN, GPIO_ModeOut_PP_5mA );
   CP_WAKEUP_GPIO(ResetBits)( CP_WAKEUP_PIN );
-  CP_Ready = FALSE;
+  g_Ready_Status.cp = FALSE;
   tmos_start_task( halTaskID, CP_INITIAL_EVENT, MS1_TO_SYSTEM_TIME(100) );
   return 0;
 }

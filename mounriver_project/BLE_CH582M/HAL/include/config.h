@@ -122,10 +122,10 @@
 #define HAL_MPR121_CAPMOUSE         FALSE          // MPR121触摸板
 #endif
 #ifndef HAL_MPR121_TOUCHBAR
-#define HAL_MPR121_TOUCHBAR         FALSE          // MPR121触摸条
+#define HAL_MPR121_TOUCHBAR         TRUE          // MPR121触摸条
 #endif
 #ifndef MSG_CP
-#define MSG_CP                      FALSE         // CP通讯(触摸条/触摸板/压力传感/I2C小红点)
+#define MSG_CP                      FALSE          // CP通讯
 #endif
 #ifndef TEM_SAMPLE
 #define TEM_SAMPLE									TRUE          // 温度采样

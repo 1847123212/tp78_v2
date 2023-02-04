@@ -183,7 +183,7 @@
     extern Keyboardstate* const Keyboarddat;
     extern BOOL PaintedEggMode;
 
-    UINT8 FLASH_Write_KeyArray( void );
+    UINT8 DATAFLASH_Write_KeyArray( void );
     UINT8 KEYBOARD_Custom_Function( void );
     void KEYBOARD_Init( void );
     void KEYBOARD_Detection( void );

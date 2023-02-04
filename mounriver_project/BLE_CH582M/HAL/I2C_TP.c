@@ -10,7 +10,7 @@
 #include "HAL.h"
 
 uint8_t I2C_TP_data_ready = 0;
-Mousestate* const I2CTPdat = (Mousestate*)&HID_DATA[1];
+Mouse_Data_t* const I2CTPdat = (Mouse_Data_t*)&HIDMouse;
 
 /*******************************************************************************
 * Function Name  : I2C_TP_Init

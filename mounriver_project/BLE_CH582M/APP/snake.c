@@ -7,18 +7,18 @@
 * SPDX-License-Identifier: GPL-3.0
 *******************************************************************************/
 
-#include <stdlib.h>
 #include "HAL.h"
+#include <stdlib.h>
 #include "snake.h"
 
-SnakeDir BodyDir[MAX_SNAKE_LENGTH];             // 身体朝向
+uint8_t BodyDir[MAX_SNAKE_LENGTH];              // 身体朝向
 static SnakePos BodyPos[MAX_SNAKE_LENGTH];      // 身体位置(LED编号)
 static SnakePos FoodPos;                        // 食物位置(LED编号)
 static uint8_t SnakeLength;                     // 蛇长
 
 static void ProduceFood( void );
 static BOOL ComparePos(SnakePos pos1, SnakePos pos2);
-static SnakePos PosDirToPos(SnakePos target, SnakeDir target_dir);
+static SnakePos PosDirToPos(SnakePos target, uint8_t target_dir);
 static BOOL CheckOverlap( SnakePos target );
 static void ShowSnake( void );
 
@@ -122,7 +122,7 @@ static BOOL CheckOverlap( SnakePos target )
 * Output         : None
 * Return         : 下一步位置
 *******************************************************************************/
-static SnakePos PosDirToPos(SnakePos target, SnakeDir target_dir)
+static SnakePos PosDirToPos(SnakePos target, uint8_t target_dir)
 {
   switch (target_dir) {
     case DirUp:
