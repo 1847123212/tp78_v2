@@ -36,6 +36,7 @@ HAL/USB.o: ../HAL/USB.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/SLEEP.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/LED.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEY.h \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/FATFS.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/USB.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/PS2.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h \
@@ -52,7 +53,10 @@ HAL/USB.o: ../HAL/USB.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEYBOARD.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BATTERY.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/WS2812.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs\port/fatfs_usbd.h \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ff.h \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ffconf.h
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\CherryUSB\core/usbd_core.h:
 
@@ -128,6 +132,8 @@ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/LED.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEY.h:
 
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/FATFS.h:
+
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/USB.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/PS2.h:
@@ -161,3 +167,9 @@ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BATTERY.h:
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/WS2812.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h:
+
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs\port/fatfs_usbd.h:
+
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ff.h:
+
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ffconf.h:

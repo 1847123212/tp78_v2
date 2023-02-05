@@ -24,7 +24,7 @@ static uint32_t style_cnt = 0;
 uint8_t DATAFLASH_Read_LEDStyle( void )
 {
   uint8_t LED_Style_Number;
-  EEPROM_READ( DATAFLASH_ADDR_LEDStyle, &LED_Style_Number, 1 );
+  HAL_Fs_Read_keyboard_cfg(FS_LINE_LED_STYLE, 1, &LED_Style_Number);
   LED_Change_flag = 1;
   switch (LED_Style_Number)
   {
@@ -60,8 +60,8 @@ uint8_t DATAFLASH_Read_LEDStyle( void )
 void DATAFLASH_Write_LEDStyle( uint8_t LED_Style_Number )
 {
   uint8_t check;
-  EEPROM_ERASE( DATAFLASH_ADDR_LEDStyle, 1 );
-  EEPROM_WRITE( DATAFLASH_ADDR_LEDStyle, &LED_Style_Number, 1 );
+
+  HAL_Fs_Write_keyboard_cfg(FS_LINE_LED_STYLE, 1, &LED_Style_Number);
 }
 
 /*******************************************************************************

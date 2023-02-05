@@ -231,10 +231,10 @@ void PS2_IT_handler(void)
 /*******************************************************************************
 * Function Name  : PS2_Init
 * Description    : 初始化PS/2鼠标
-* Input          : buf - 错误信息; is_IT - 是否使用中断
+* Input          : debug_info - 错误信息; is_IT - 是否使用中断
 * Return         : 成功返回0，失败返回1
 *******************************************************************************/
-uint8_t PS2_Init(char* buf, BOOL is_IT)
+uint8_t PS2_Init(char* debug_info, BOOL is_IT)
 { 	
   uint8_t res, sta;
 
@@ -247,31 +247,31 @@ uint8_t PS2_Init(char* buf, BOOL is_IT)
   // config mode
   sta = PS2_Config(PS_RESET, 0xFA);
   if (sta != 0) {
-    strcpy(buf, "PS2-ERR-01");
+    strcpy(debug_info, "PS2-ERR-01");
     return 1;
   }
   sta = PS2_ReadByte(&res);   //AA
   if (sta != 0 || res != 0xAA) {
-    strcpy(buf, "PS2-ERR-02");
+    strcpy(debug_info, "PS2-ERR-02");
     return 1;
   } else if (res != 0xAA) {
-    strcpy(buf, "PS2-WAR-02");
+    strcpy(debug_info, "PS2-WAR-02");
   }
   sta = PS2_ReadByte(&res);   //ID号：0
   if (sta != 0) {
-    strcpy(buf, "PS2-ERR-03");
+    strcpy(debug_info, "PS2-ERR-03");
     return 1;
   } else if (res != 0x00) {
-    strcpy(buf, "PS2-WAR-03");
+    strcpy(debug_info, "PS2-WAR-03");
   }
   sta = PS2_Config(SET_DEFAULT, 0xFA);
   if (sta != 0) {
-    strcpy(buf, "PS2-ERR-04");
+    strcpy(debug_info, "PS2-ERR-04");
     return 1;
   }
   sta = PS2_Config(EN_DATA_REPORT, 0xFA);
   if (sta != 0) {
-    strcpy(buf, "PS2-ERR-05");
+    strcpy(debug_info, "PS2-ERR-05");
     return 1;
   }
   if (is_IT) {

@@ -107,7 +107,7 @@
 #define HAL_MOTOR                   TRUE          // 震动马达
 #endif
 #ifndef HAL_RF
-#define HAL_RF                      FALSE          // RF 2.4G
+#define HAL_RF                      TRUE          // RF 2.4G
 #endif
 #ifndef HAL_HW_I2C
 #define HAL_HW_I2C                  TRUE          // 硬件I2C
@@ -122,7 +122,7 @@
 #define HAL_MPR121_CAPMOUSE         FALSE          // MPR121触摸板
 #endif
 #ifndef HAL_MPR121_TOUCHBAR
-#define HAL_MPR121_TOUCHBAR         TRUE          // MPR121触摸条
+#define HAL_MPR121_TOUCHBAR         FALSE          // MPR121触摸条
 #endif
 #ifndef MSG_CP
 #define MSG_CP                      FALSE          // CP通讯

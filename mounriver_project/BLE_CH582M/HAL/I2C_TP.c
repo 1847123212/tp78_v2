@@ -18,7 +18,7 @@ Mouse_Data_t* const I2CTPdat = (Mouse_Data_t*)&HIDMouse;
 * Input          : buf - ¥ÌŒÛ–≈œ¢
 * Return         : None
 *******************************************************************************/
-void I2C_TP_Init(char* buf)
+void I2C_TP_Init(char* debug_info)
 {
   uint8_t err;
 
@@ -29,7 +29,7 @@ void I2C_TP_Init(char* buf)
   PFIC_EnableIRQ( GPIO_B_IRQn );  //TPINT_GPIO
   err = I2C_TP_SendCommand_Reset();
   if (err != 0) {
-    strcpy(buf, "I2C_TP-ERR");
+    strcpy(debug_info, "I2C_TP-ERR");
   }
 }
 

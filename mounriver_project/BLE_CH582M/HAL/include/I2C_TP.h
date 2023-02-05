@@ -17,7 +17,7 @@
 
   extern uint8_t I2C_TP_data_ready;
 
-  void I2C_TP_Init(char* buf);
+  void I2C_TP_Init(char* debug_info);
   uint8_t I2C_TP_SendCommand_Sleep(void);
   uint8_t I2C_TP_SendCommand_Wakeup(void);
   uint8_t I2C_TP_SendCommand_Reset(void);

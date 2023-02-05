@@ -28,7 +28,7 @@ void BATTERY_Init( void )
 //  ADC_InterTSSampInit();
 //  RoughCalib_Value = ADC_DataCalib_Rough(); // 用于计算ADC内部偏差，记录到变量 RoughCalib_Value中
   // bat charging io
-  GPIOB_ModeCfg( GPIO_Pin_14, GPIO_ModeIN_PU );
+  GPIOB_ModeCfg( BAT_CHRG_PIN, GPIO_ModeIN_PU );
   // adc init
   GPIOA_ModeCfg( GPIO_Pin_8, GPIO_ModeIN_Floating );
   ADC_ExtSingleChSampInit( SampleFreq_3_2, ADC_PGA_0 );

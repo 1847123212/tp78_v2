@@ -440,17 +440,20 @@ void usb_suspend_wake_up_cb(uint8_t type)
 
 /*--------------------------- define for msc ---------------------------*/
 
-#define BLOCK_SIZE  512
+#include "fatfs_usbd.h"
+
+#define BLOCK_SIZE    512
+#define BLOCK_COUNT   64
 
 void usbd_msc_get_cap(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
 {
-    *block_num = 64; //Pretend having so many buffer,not has actually.
+    *block_num = BLOCK_COUNT; //Pretend having so many buffer,not has actually.
     *block_size = BLOCK_SIZE;
 }
 int usbd_msc_sector_read(uint32_t sector, uint8_t *buffer, uint32_t length)
 {
 //    if (sector < 64) {
-    EEPROM_READ(sector * BLOCK_SIZE, buffer, length);
+    USB_disk_read(buffer, sector, length);
 //    }
     return 0;
 }
@@ -458,8 +461,7 @@ int usbd_msc_sector_read(uint32_t sector, uint8_t *buffer, uint32_t length)
 int usbd_msc_sector_write(uint32_t sector, uint8_t *buffer, uint32_t length)
 {
 //    if (sector < 64) {
-    EEPROM_ERASE(sector * BLOCK_SIZE, length);
-    EEPROM_WRITE(sector * BLOCK_SIZE, buffer, length);
+    USB_disk_write(buffer, sector, length);
 //    }
     return 0;
 }

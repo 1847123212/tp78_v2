@@ -19,6 +19,8 @@ extern "C"
 
 #include "CH58x_common.h"
 
+//#define FIRST_USED        // 出产设置
+
 /* HID data format */
 typedef union {
     struct {
@@ -41,6 +43,7 @@ typedef union {
 #include "SLEEP.h"	
 #include "LED.h"
 #include "KEY.h"
+#include "FATFS.h"
 #include "USB.h"
 #include "PS2.h"
 #include "BLE.h"
@@ -88,17 +91,19 @@ typedef union {
 #define CODEFLASH_LENGTH                    (0x18000)     // 结束地址0x67FFF(预留0x7FFF)
 
 /* DataFlash 基地址0x70000 */
+#if 0    // for old version
 #define DATAFLASH_ADDR_CustomKey            (8*1024)      // 从8K地址开始存放键盘布局，map空余空间：0x4~0x210C
 #define DATAFLASH_ADDR_Extra_CustomKey      (9*1024)      // 从9K地址开始存放键盘额外布局
 #define DATAFLASH_ADDR_LEDStyle             (10*1024)     // 背光样式
 #define DATAFLASH_ADDR_BLEDevice            (10*1024+4)   // 蓝牙默认连接设备编号
 #define DATAFLASH_ADDR_RForBLE              (10*1024+8)   // 启动默认RF模式或者BLE模式
 #define DATAFLASH_ADDR_MPR121_ALG_Param     (10*1024+12)  // MPR121算法参数存储
+#endif
 
 #define IDLE_MAX_PERIOD                     240           // idle_cnt大于该值则进入屏保，单位为500ms
 #define LP_MAX_PERIOD                       480           // idle_cnt大于该值则进入低功耗模式，单位为500ms
 
-#define MOTOR_PIN                           GPIO_Pin_18
+#define MOTOR_PIN                           GPIO_Pin_19
 #define MOTOR_RUN()                         { GPIOB_SetBits( MOTOR_PIN ); }
 #define MOTOR_STOP()                        { GPIOB_ResetBits( MOTOR_PIN ); }
 #define MOTOR_Init()                        { GPIOB_SetBits( MOTOR_PIN ); GPIOB_ModeCfg( MOTOR_PIN, GPIO_ModeOut_PP_5mA ); GPIOB_ResetBits( MOTOR_PIN ); }
@@ -133,7 +138,7 @@ typedef struct _Ready_Status_t
     uint8_t ble_l : 1;
     uint8_t rf_l : 1;
     uint8_t cp : 1;
-    uint8_t reserved : 1;
+    uint8_t fatfs : 1;
 }Ready_Status_t;
 
 typedef struct _Enable_Status_t

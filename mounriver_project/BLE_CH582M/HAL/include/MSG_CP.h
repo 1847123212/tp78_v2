@@ -52,6 +52,6 @@
   #define CP_I2C_RD_Reg(reg, p_dat)             HW_I2C_RD_Reg(reg, p_dat, CP_I2C_ADDR)
   #define CP_I2C_Muti_RD_Reg(reg, p_dat, len)   HW_I2C_Muti_RD_Reg(reg, p_dat, CP_I2C_ADDR, len)
 
-  uint8_t MSG_CP_Init(char* buf);
+  uint8_t MSG_CP_Init(char* debug_info);
 
 #endif

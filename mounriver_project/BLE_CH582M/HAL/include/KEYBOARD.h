@@ -179,11 +179,13 @@
     }Keyboardstate;
 
     extern uint32_t Row_Pin_ALL, Colum_Pin_ALL;
+    extern uint8_t CustomKey[COL_SIZE][ROW_SIZE];
+    extern uint8_t Extra_CustomKey[COL_SIZE][ROW_SIZE];
     extern uint8_t KEYBOARD_data_ready, KEYBOARD_mouse_ready, LED_Change_flag;
     extern Keyboardstate* const Keyboarddat;
     extern BOOL PaintedEggMode;
 
-    UINT8 DATAFLASH_Write_KeyArray( void );
+    void KEYBOARD_Reset( void );
     UINT8 KEYBOARD_Custom_Function( void );
     void KEYBOARD_Init( void );
     void KEYBOARD_Detection( void );

@@ -182,7 +182,7 @@ void MPR121_Init(char* buf)
 *******************************************************************************/
 void DATAFLASH_Read_MPR121_ALG_Parameter(void)
 {
-  EEPROM_READ( DATAFLASH_ADDR_MPR121_ALG_Param, &mpr_algParameter, sizeof(alg_Param) );
+  HAL_Fs_Read_keyboard_cfg(FS_LINE_MPR_ALG_MAGIC, 5, (uint8_t*)&mpr_algParameter);
   if (mpr_algParameter.magic != ALG_PARAM_MAGIC) {
     // use default parameter
     mpr_algParameter.magic = ALG_PARAM_MAGIC;
@@ -201,8 +201,7 @@ void DATAFLASH_Read_MPR121_ALG_Parameter(void)
 *******************************************************************************/
 void DATAFLASH_Write_MPR121_ALG_Parameter(void)
 {
-  EEPROM_ERASE( DATAFLASH_ADDR_MPR121_ALG_Param, sizeof(alg_Param) );
-  EEPROM_WRITE( DATAFLASH_ADDR_MPR121_ALG_Param, &mpr_algParameter, sizeof(alg_Param) );
+  HAL_Fs_Write_keyboard_cfg(FS_LINE_MPR_ALG_MAGIC, 5, (uint8_t*)&mpr_algParameter);
 }
 
 /*******************************************************************************

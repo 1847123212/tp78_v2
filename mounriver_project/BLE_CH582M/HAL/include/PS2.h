@@ -52,6 +52,6 @@
   void PS2_En_Data_Report(void);
   void PS2_Dis_Data_Report(void);
   void PS2_IT_handler(void);
-  uint8_t PS2_Init(char* buf, BOOL is_IT);
+  uint8_t PS2_Init(char* debug_info, BOOL is_IT);
 	
 #endif

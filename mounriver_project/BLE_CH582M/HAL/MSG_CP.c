@@ -12,15 +12,15 @@
 /*******************************************************************************
 * Function Name  : MSG_CP_Init
 * Description    : 初始化CPmsg
-* Input          : buf - 错误信息
+* Input          : debug_info - 错误信息
 * Return         : 成功返回0，失败返回1
 *******************************************************************************/
-uint8_t MSG_CP_Init(char* buf)
+uint8_t MSG_CP_Init(char* debug_info)
 {
   uint8_t dat, err;
   uint16_t cnt = 0;
 #if !(defined HAL_HW_I2C) || (HAL_HW_I2C == FALSE)  // should config MSG_CP after HW_I2C
-  strcpy(buf, "MSG-ERR-01");
+  strcpy(debug_info, "MSG-ERR-01");
   return 1;
 #endif
   CP_WAKEUP_GPIO(SetBits)( CP_WAKEUP_PIN );

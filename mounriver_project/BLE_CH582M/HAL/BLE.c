@@ -213,7 +213,7 @@ static hidDevCB_t hidEmuHidCBs =
 void DATAFLASH_Read_DeviceID( void )
 {
   uint8_t DeviceID;
-  EEPROM_READ( DATAFLASH_ADDR_BLEDevice, &DeviceID, 1 );
+  HAL_Fs_Read_keyboard_cfg(FS_LINE_BLE_DEVICE, 1, &DeviceID);
   DeviceAddress[5] = DeviceID - 1 >= 6 ? 1 : DeviceID;
 }
 
@@ -225,9 +225,7 @@ void DATAFLASH_Read_DeviceID( void )
 *******************************************************************************/
 void DATAFLASH_Write_DeviceID( uint8_t DeviceID )
 {
-  uint8_t check;
-  EEPROM_ERASE( DATAFLASH_ADDR_BLEDevice, 1 );
-  EEPROM_WRITE( DATAFLASH_ADDR_BLEDevice, &DeviceID, 1 );
+  HAL_Fs_Write_keyboard_cfg(FS_LINE_BLE_DEVICE, 1, &DeviceID);
 }
 
 /*********************************************************************

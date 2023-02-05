@@ -11,9 +11,9 @@
 #include "HAL.h"
 #include "snake.h"
 
-const uint32_t Row_Pin[ROW_SIZE] = {GPIO_Pin_9, GPIO_Pin_8, GPIO_Pin_6, GPIO_Pin_5, GPIO_Pin_3, GPIO_Pin_2};   //row 6 - 其它键盘布局需修改此处
-const uint32_t Colum_Pin[COL_SIZE] = {GPIO_Pin_9, GPIO_Pin_7, GPIO_Pin_11, GPIO_Pin_12, GPIO_Pin_13, GPIO_Pin_4, GPIO_Pin_5,
-                                      GPIO_Pin_6, GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3, GPIO_Pin_15, GPIO_Pin_14};   //colum 14 - 其它键盘布局需修改此处
+const uint32_t Row_Pin[ROW_SIZE] = {GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3, GPIO_Pin_5, GPIO_Pin_6};   //row 6 - 其它键盘布局需修改此处
+const uint32_t Colum_Pin[COL_SIZE] = {GPIO_Pin_4, GPIO_Pin_5, GPIO_Pin_6, GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3,
+                                      GPIO_Pin_15, GPIO_Pin_14, GPIO_Pin_13, GPIO_Pin_12, GPIO_Pin_11, GPIO_Pin_9, GPIO_Pin_7};   //colum 14 - 其它键盘布局需修改此处
 //row*colum = 6*14 = 84
 const uint8_t KeyArrary[COL_SIZE][ROW_SIZE] = {
         { KEY_ESCAPE,   KEY_GraveAccent,    KEY_TAB,        KEY_CapsLock,   KEY_LeftShift,  KEY_LeftCTRL }, //1
@@ -87,24 +87,20 @@ static uint16_t KeyArr_ChangeTimes = 0;
 *******************************************************************************/
 void DATAFLASH_Read_KeyArray( void )
 {
-  EEPROM_READ( DATAFLASH_ADDR_CustomKey, CustomKey, COL_SIZE*ROW_SIZE );
-  EEPROM_READ( DATAFLASH_ADDR_Extra_CustomKey, Extra_CustomKey, COL_SIZE*ROW_SIZE );
+  HAL_Fs_Read_keyboard_mat("0:keyboard_mat.txt", (uint8_t*)CustomKey);
+  HAL_Fs_Read_keyboard_mat("0:keyboard_ext_mat.txt", (uint8_t*)Extra_CustomKey);
 }
 
 /*******************************************************************************
 * Function Name  : DATAFLASH_Write_KeyArray
 * Description    : 将按键矩阵写入DataFlash
 * Input          : None
-* Return         : 如果成功返回0
+* Return         : None
 *******************************************************************************/
-UINT8 DATAFLASH_Write_KeyArray( void )
+void DATAFLASH_Write_KeyArray( void )
 {
-  UINT8 s;
-  EEPROM_ERASE( DATAFLASH_ADDR_CustomKey, COL_SIZE*ROW_SIZE );
-  EEPROM_ERASE( DATAFLASH_ADDR_Extra_CustomKey, COL_SIZE*ROW_SIZE );
-  s = EEPROM_WRITE( DATAFLASH_ADDR_CustomKey, CustomKey, COL_SIZE*ROW_SIZE );
-  s |= EEPROM_WRITE( DATAFLASH_ADDR_Extra_CustomKey, Extra_CustomKey, COL_SIZE*ROW_SIZE );
-  return s;
+  HAL_Fs_Write_keyboard_mat("0:keyboard_mat.txt", (const uint8_t*)CustomKey);
+  HAL_Fs_Write_keyboard_mat("0:keyboard_ext_mat.txt", (const uint8_t*)Extra_CustomKey);
 }
 
 /*******************************************************************************
@@ -115,19 +111,15 @@ UINT8 DATAFLASH_Write_KeyArray( void )
 *******************************************************************************/
 void KEYBOARD_Reset( void )
 {
-  uint8_t temp;
+  uint8_t param[] = { 1, 1, 0,
+                      ALG_PARAM_MAGIC, TOUCHBAR_TOU_THRESH, TOUCHBAR_REL_THRESH,
+                      CAP_MOUSE_TOU_THRESH, CAP_MOUSE_REL_THRESH
+  };
+
   memcpy(CustomKey, KeyArrary, COL_SIZE*ROW_SIZE);
   memcpy(Extra_CustomKey, Extra_KeyArrary, COL_SIZE*ROW_SIZE);
   DATAFLASH_Write_KeyArray( );
-  temp = 0;
-  EEPROM_ERASE( DATAFLASH_ADDR_LEDStyle, 1 );
-  EEPROM_WRITE( DATAFLASH_ADDR_LEDStyle, &temp, 1 );   // default LED Style
-  temp = 1;
-  EEPROM_ERASE( DATAFLASH_ADDR_BLEDevice, 1 );
-  EEPROM_WRITE( DATAFLASH_ADDR_BLEDevice, &temp, 1 );   // default BLE Device
-  temp = 0;
-  EEPROM_ERASE( DATAFLASH_ADDR_BLEDevice, 1 );
-  EEPROM_WRITE( DATAFLASH_ADDR_RForBLE, &temp, 1 );   // default BLE mode
+  HAL_Fs_Create_keyboard_cfg(sizeof(param), param);
 }
 
 /*******************************************************************************

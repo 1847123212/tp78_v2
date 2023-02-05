@@ -10,11 +10,10 @@
 
 /********************************** (C) COPYRIGHT *******************************
  *  Pin information:
- *  PB10 & PB11 --- USB1; [PA0~PA7 & PA9 & PA11~PA15] & [PB2/PB3/PB5/PB6/PB8/PB9] --- KeyBoard
+ *  PB10 & PB11 --- USB1_D-/USB1_D+; [PA0~PA7 & PA9 & PA11~PA15] & [PB0/PB1/PB2/PB3/PB5/PB6] --- KeyBoard
  *  PB15(*) & PB14 --- PS/2 Reserved; PA10 --- WS2812(TMR1); PB13 & PB12 --- SCL/SDA
- *  PA8 --- Battery ADC; PB7 & PB4 --- TXD0/RXD0; PB21 & PB20 ---TXD3_/RXD3_
- *  PB0 --- LED; PB1 --- KEY; PB15(*) --- I2C TrackPoint IRQ; PB19 --- MPR121 IRQ
- *  PB18 --- Motor CTL
+ *  PA8 --- Battery ADC; PB16 & PB17 --- Battery COM/CHRG; PB7 & PB4 --- TXD0/RXD0;
+ *  PB21 & PB20 ---TXD3_/RXD3_; PB15(*) --- I2C TrackPoint IRQ; PB18 --- MPR121 IRQ; PB19 --- Motor CTL
  ********************************* (C) COPYRIGHT ********************************/
 
 /*********************************************************************

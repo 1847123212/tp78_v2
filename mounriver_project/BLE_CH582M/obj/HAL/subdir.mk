@@ -7,6 +7,7 @@ C_SRCS += \
 ../HAL/BATTERY.c \
 ../HAL/BLE.c \
 ../HAL/CORE.c \
+../HAL/FATFS.c \
 ../HAL/HW_I2C.c \
 ../HAL/I2C_TP.c \
 ../HAL/KEYBOARD.c \
@@ -25,6 +26,7 @@ OBJS += \
 ./HAL/BATTERY.o \
 ./HAL/BLE.o \
 ./HAL/CORE.o \
+./HAL/FATFS.o \
 ./HAL/HW_I2C.o \
 ./HAL/I2C_TP.o \
 ./HAL/KEYBOARD.o \
@@ -43,6 +45,7 @@ C_DEPS += \
 ./HAL/BATTERY.d \
 ./HAL/BLE.d \
 ./HAL/CORE.d \
+./HAL/FATFS.d \
 ./HAL/HW_I2C.d \
 ./HAL/I2C_TP.d \
 ./HAL/KEYBOARD.d \

@@ -26,7 +26,8 @@
 
   #define BAT_FLOATING_VAL    50    // ADC浮动超过该值则警告
 
-  #define BAT_IS_CHARGING     !(R32_PB_PIN & GPIO_Pin_14)
+  #define BAT_CHRG_PIN        GPIO_Pin_17
+  #define BAT_IS_CHARGING     !(R32_PB_PIN & BAT_CHRG_PIN)
 
   void BATTERY_Init( void );
   void BATTERY_DMA_ENABLE( void );

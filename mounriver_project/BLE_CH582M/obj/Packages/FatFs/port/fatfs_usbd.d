@@ -2,7 +2,6 @@ Packages/FatFs/port/fatfs_usbd.o: ../Packages/FatFs/port/fatfs_usbd.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/diskio.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ff.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ffconf.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_common.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH583SFR.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\RVMSIS/core_riscv.h \
@@ -19,38 +18,13 @@ Packages/FatFs/port/fatfs_usbd.o: ../Packages/FatFs/port/fatfs_usbd.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_spi.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbdev.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbhost.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/ISP583.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/RTC.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/config.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\LIB/CH58xBLE_LIB.H \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/SLEEP.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/LED.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEY.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/USB.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/PS2.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BLE.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CONFIG.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/MSG_CP.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HW_I2C.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/I2C_TP.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/MPR121.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/OLED.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/OLEDFONT.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/OLED_UI.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/RF_PHY.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEYBOARD.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BATTERY.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/WS2812.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/ISP583.h
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/diskio.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ff.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\Packages\FatFs/ffconf.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_common.h:
 
@@ -85,49 +59,3 @@ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbdev
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbhost.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/ISP583.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/RTC.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/config.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\LIB/CH58xBLE_LIB.H:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/SLEEP.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/LED.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEY.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/USB.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/PS2.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BLE.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CONFIG.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/MSG_CP.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HW_I2C.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/I2C_TP.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/MPR121.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/OLED.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/OLEDFONT.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/OLED_UI.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/RF_PHY.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEYBOARD.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BATTERY.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/WS2812.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h:

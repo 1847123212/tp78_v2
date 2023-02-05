@@ -33,7 +33,7 @@ uint8_t TX_DATA[2] = {0xff, 0xff};
 void DATAFLASH_Read_RForBLE(void)
 {
   uint8_t rf_ready;
-  EEPROM_READ( DATAFLASH_ADDR_RForBLE, &rf_ready, 1 );
+  HAL_Fs_Read_keyboard_cfg(FS_LINE_RF_READY, 1, &rf_ready);
   g_Ready_Status.rf = rf_ready ? TRUE : FALSE;
 }
 
@@ -45,9 +45,7 @@ void DATAFLASH_Read_RForBLE(void)
 *******************************************************************************/
 void DATAFLASH_Write_RForBLE(uint8_t rf_ready)
 {
-  uint8_t check;
-  EEPROM_ERASE( DATAFLASH_ADDR_RForBLE, 1 );
-  EEPROM_WRITE( DATAFLASH_ADDR_RForBLE, &rf_ready, 1 );
+  HAL_Fs_Write_keyboard_cfg(FS_LINE_RF_READY, 1, &rf_ready);
 }
 
 /*********************************************************************

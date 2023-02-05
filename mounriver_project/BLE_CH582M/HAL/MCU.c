@@ -895,6 +895,12 @@ void HAL_Init()
 
   halTaskID = TMOS_ProcessEventRegister( HAL_ProcessEvent );
   HAL_TimeInit();
+  HAL_Fs_Init(debug_info);
+#ifdef FIRST_USED
+  if (g_Ready_Status.fatfs == TRUE) {
+    KEYBOARD_Reset();
+  }
+#endif
 #if (defined HAL_SLEEP) && (HAL_SLEEP == TRUE)
   HAL_SleepInit();
 #endif
@@ -913,8 +919,6 @@ void HAL_Init()
 #if (defined HAL_OLED) && (HAL_OLED == TRUE)
   HAL_OLED_Init( );
 #endif
-  extern void HAL_Fs_init(void);
-  HAL_Fs_init();
 #if (defined HAL_BATTADC) && (HAL_BATTADC == TRUE)
   BATTERY_Init( );
 #endif
@@ -941,10 +945,10 @@ void HAL_Init()
 #endif
 #if (defined HAL_LED) && (HAL_LED == TRUE)
   debug_info[7] = '\0';
-  if ( strcmp(debug_info, "[ERROR]") == 0 ) {
-    HAL_LedInit(1);
-  } else {
+  if ( strcmp(debug_info, "All Ready!") == 0 ) {
     HAL_LedInit(0);
+  } else {
+    HAL_LedInit(1);
   }
 #endif
 #if ( defined BLE_CALIBRATION_ENABLE ) && ( BLE_CALIBRATION_ENABLE == TRUE )

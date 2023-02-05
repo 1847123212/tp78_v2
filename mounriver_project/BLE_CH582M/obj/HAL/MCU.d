@@ -23,6 +23,7 @@ HAL/MCU.o: ../HAL/MCU.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/SLEEP.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/LED.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEY.h \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/FATFS.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/USB.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/PS2.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h \
@@ -89,6 +90,8 @@ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/SLEEP.h:
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/LED.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEY.h:
+
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/FATFS.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/USB.h:
 
