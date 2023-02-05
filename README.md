@@ -1,4 +1,4 @@
-<img title="" src="resources/logo.png" alt="sd" width="152" data-align="center">
+<p align="center"><img src="resources/logo.png" alt="MarkText" width="120" height="120"></p>
 
 <h1 align="center">TrackPoint78 </h1>
 
