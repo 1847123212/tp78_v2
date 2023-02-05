@@ -1,4 +1,4 @@
-<img title="" src="file:///E:/Project/tp78_v2/resources/logo.png" alt="sd" width="152" data-align="center">
+<img title="" src="resources/logo.png" alt="sd" width="152" data-align="center">
 
 <h1 align="center">TrackPoint78 </h1>
 
