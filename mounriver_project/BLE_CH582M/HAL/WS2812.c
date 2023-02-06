@@ -249,7 +249,7 @@ void WS2812_Style_Rainbow( void )
       LED_DMA_Buffer[memaddr] = ((LED_BYTE_Buffer[i][BLUE_INDEX]<<j) & 0x0080) ? TIMING_ONE:TIMING_ZERO;
       memaddr++;
     }
-    /* 其他键盘布局虚修改此处 */
+    /* 其他键盘布局需修改此处 */
     if (i >= 0 && i <= 7) { // sixth row - RED - 8 LED
       LED_BYTE_Buffer[i][GREEN_INDEX] = 0;
       LED_BYTE_Buffer[i][RED_INDEX] = 128 - ABS(i-0-(signed int)style_cnt*7/42)*17;

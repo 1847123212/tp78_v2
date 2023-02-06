@@ -183,64 +183,33 @@ const unsigned char usbd_descriptor[] = {
     0x03,                                       /*!< bDescriptorType */
     WBVAL(USBD_LANGID_STRING),                  /*!< wLangID0 */
 /********************************************** String 1 Descriptor */
-/* Your Manufacturer */
-    0x24,                                       /*!< bLength */
+/* CL_novel */
+    0x12,                                       /*!< bLength */
     0x03,                                       /*!< bDescriptorType */
-    0x59, 0x00,                                 /*!< 'Y' wcChar0 */
-    0x6f, 0x00,                                 /*!< 'o' wcChar1 */
-    0x75, 0x00,                                 /*!< 'u' wcChar2 */
-    0x72, 0x00,                                 /*!< 'r' wcChar3 */
-    0x20, 0x00,                                 /*!< ' ' wcChar4 */
-    0x4d, 0x00,                                 /*!< 'M' wcChar5 */
-    0x61, 0x00,                                 /*!< 'a' wcChar6 */
-    0x6e, 0x00,                                 /*!< 'n' wcChar7 */
-    0x75, 0x00,                                 /*!< 'u' wcChar8 */
-    0x66, 0x00,                                 /*!< 'f' wcChar9 */
-    0x61, 0x00,                                 /*!< 'a' wcChar10 */
-    0x63, 0x00,                                 /*!< 'c' wcChar11 */
-    0x74, 0x00,                                 /*!< 't' wcChar12 */
-    0x75, 0x00,                                 /*!< 'u' wcChar13 */
-    0x72, 0x00,                                 /*!< 'r' wcChar14 */
-    0x65, 0x00,                                 /*!< 'e' wcChar15 */
-    0x72, 0x00,                                 /*!< 'r' wcChar16 */
-/********************************************** String 2 Descriptor */
-/* Your Product */
-    0x1a,                                       /*!< bLength */
-    0x03,                                       /*!< bDescriptorType */
-    0x59, 0x00,                                 /*!< 'Y' wcChar0 */
-    0x6f, 0x00,                                 /*!< 'o' wcChar1 */
-    0x75, 0x00,                                 /*!< 'u' wcChar2 */
-    0x72, 0x00,                                 /*!< 'r' wcChar3 */
-    0x20, 0x00,                                 /*!< ' ' wcChar4 */
-    0x50, 0x00,                                 /*!< 'P' wcChar5 */
-    0x72, 0x00,                                 /*!< 'r' wcChar6 */
-    0x6f, 0x00,                                 /*!< 'o' wcChar7 */
-    0x64, 0x00,                                 /*!< 'd' wcChar8 */
-    0x75, 0x00,                                 /*!< 'u' wcChar9 */
-    0x63, 0x00,                                 /*!< 'c' wcChar10 */
-    0x74, 0x00,                                 /*!< 't' wcChar11 */
-/********************************************** String 3 Descriptor */
-/* Your Serial Number */
-    0x26,                                       /*!< bLength */
-    0x03,                                       /*!< bDescriptorType */
-    0x59, 0x00,                                 /*!< 'Y' wcChar0 */
-    0x6f, 0x00,                                 /*!< 'o' wcChar1 */
-    0x75, 0x00,                                 /*!< 'u' wcChar2 */
-    0x72, 0x00,                                 /*!< 'r' wcChar3 */
-    0x20, 0x00,                                 /*!< ' ' wcChar4 */
-    0x53, 0x00,                                 /*!< 'S' wcChar5 */
+    0x43, 0x00,                                 /*!< 'C' wcChar0 */
+    0x4c, 0x00,                                 /*!< 'L' wcChar1 */
+    0x5f, 0x00,                                 /*!< '_' wcChar2 */
+    0x6e, 0x00,                                 /*!< 'n' wcChar3 */
+    0x6f, 0x00,                                 /*!< 'o' wcChar4 */
+    0x76, 0x00,                                 /*!< 'v' wcChar5 */
     0x65, 0x00,                                 /*!< 'e' wcChar6 */
-    0x72, 0x00,                                 /*!< 'r' wcChar7 */
-    0x69, 0x00,                                 /*!< 'i' wcChar8 */
-    0x61, 0x00,                                 /*!< 'a' wcChar9 */
-    0x6c, 0x00,                                 /*!< 'l' wcChar10 */
-    0x20, 0x00,                                 /*!< ' ' wcChar11 */
-    0x4e, 0x00,                                 /*!< 'N' wcChar12 */
-    0x75, 0x00,                                 /*!< 'u' wcChar13 */
-    0x6d, 0x00,                                 /*!< 'm' wcChar14 */
-    0x62, 0x00,                                 /*!< 'b' wcChar15 */
-    0x65, 0x00,                                 /*!< 'e' wcChar16 */
-    0x72, 0x00,                                 /*!< 'r' wcChar17 */
+    0x6c, 0x00,                                 /*!< 'l' wcChar7 */
+/********************************************** String 2 Descriptor */
+/* TP78 */
+    0x0a,                                       /*!< bLength */
+    0x03,                                       /*!< bDescriptorType */
+    0x54, 0x00,                                 /*!< 'T' wcChar0 */
+    0x50, 0x00,                                 /*!< 'P' wcChar1 */
+    0x37, 0x00,                                 /*!< '7' wcChar2 */
+    0x38, 0x00,                                 /*!< '8' wcChar3 */
+/********************************************** String 3 Descriptor */
+/* v2.0 */
+    0x0a,                                       /*!< bLength */
+    0x03,                                       /*!< bDescriptorType */
+    0x76, 0x00,                                 /*!< 'v' wcChar0 */
+    0x32, 0x00,                                 /*!< '2' wcChar1 */
+    0x2e, 0x00,                                 /*!< '.' wcChar2 */
+    0x30, 0x00,                                 /*!< '0' wcChar3 */
     0x00
 };
 
@@ -467,10 +436,6 @@ int usbd_msc_sector_write(uint32_t sector, uint8_t *buffer, uint32_t length)
 }
 
 #if 0
-void usbh_hid_set_report(uint8_t intf, uint8_t report_id, uint8_t report_type, uint8_t *report, uint8_t report_len)
-{
-    g_CapsLock_LEDOn_Status.usb = (report[0] & (1<<1) ? TRUE : FALSE);
-}
 
 void hid_mouse_test(void)
 {

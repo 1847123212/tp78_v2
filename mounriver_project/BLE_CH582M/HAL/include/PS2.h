@@ -42,7 +42,7 @@
   #define SET_SCALING21       	0XE7
   #define SET_SCALING11       	0XE6
 
-  extern uint8_t PS2_byte_cnt, PS2_data_ready;
+  extern uint8_t PS2_byte_cnt;
 
   //declare functions
   uint8_t PS2_ReadByte(uint8_t* dat);

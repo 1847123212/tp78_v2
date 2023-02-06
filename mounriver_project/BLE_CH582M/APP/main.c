@@ -3,7 +3,7 @@
 * Author             : ChnMasterOG, WCH
 * Version            : V2.0
 * Date               : 2022/11/30
-* Description        : TP78小红点+蓝牙+2.4G三模键盘应用主函数及任务系统初始化
+* Description        : 应用层 - TP78小红点+蓝牙+2.4G三模键盘应用主函数及任务系统初始化
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
 * SPDX-License-Identifier: GPL-3.0
 *******************************************************************************/
@@ -91,7 +91,6 @@ int main( void )
   tmos_start_task( halTaskID, MAIN_CIRCULATION_EVENT, 10 ); // 主循环
   tmos_start_task( halTaskID, WS2812_EVENT, 10 );  // 背光控制
   tmos_start_task( halTaskID, OLED_UI_EVENT, 10 );  // OLED UI
-  tmos_start_task( usbTaskID, USB_TEST_EVENT, 1000 );  // USB TEST
 #if ((defined HAL_MPR121_CAPMOUSE) && (HAL_MPR121_CAPMOUSE == TRUE)) || ((defined HAL_MPR121_TOUCHBAR) && (HAL_MPR121_TOUCHBAR == TRUE))
   tmos_start_task( halTaskID, MPR121_EVENT, 10 );  // MPR121
 #endif

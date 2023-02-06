@@ -25,7 +25,7 @@ extern "C"
 
 // Task Events
 #define START_DEVICE_EVT                              0x0001
-#define TEST_REPORT_EVT                               0x0002
+#define BLE_TEST_REPORT_EVT                           0x0002
 #define START_PARAM_UPDATE_EVT                        0x0004
 #define START_PHY_UPDATE_EVT                          0x0008
 #define CHANGE_ADDR_EVT                               0x0010

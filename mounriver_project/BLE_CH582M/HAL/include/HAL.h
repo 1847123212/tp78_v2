@@ -3,7 +3,7 @@
 * Author             : ChnMasterOG, WCH
 * Version            : V1.1
 * Date               : 2022/11/13
-* Description        : 
+* Description        : HAL层通用头文件
 *******************************************************************************/
 
 
@@ -139,6 +139,10 @@ typedef struct _Ready_Status_t
     uint8_t rf_l : 1;
     uint8_t cp : 1;
     uint8_t fatfs : 1;
+    uint8_t keyboard_key_data : 1;
+    uint8_t keyboard_mouse_data : 1;
+    uint8_t ps2_data : 1;
+    uint8_t i2ctp_data : 1;
 }Ready_Status_t;
 
 typedef struct _Enable_Status_t
@@ -146,7 +150,8 @@ typedef struct _Enable_Status_t
     uint8_t ble : 1;
     uint8_t motor : 1;
     uint8_t tp : 1;
-    uint8_t reserved : 5;
+    uint8_t paintedegg : 1;
+    uint8_t reserved : 4;
 }Enable_Status_t;
 
 /*********************************************************************

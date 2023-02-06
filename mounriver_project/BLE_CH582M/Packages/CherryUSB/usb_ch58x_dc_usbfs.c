@@ -223,9 +223,11 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
     if (!usb_dc_cfg.ep_in[ep_idx].ep_enable) {
         return -2;
     }
+#if 0
     if ((uint32_t)data & 0x03) {
         return -3;
     }
+#endif
 
     usb_dc_cfg.ep_in[ep_idx].xfer_buf = (uint8_t *)data;
     usb_dc_cfg.ep_in[ep_idx].xfer_len = data_len;

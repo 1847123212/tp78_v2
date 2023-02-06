@@ -1,4 +1,5 @@
 HAL/MCU.o: ../HAL/MCU.c \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include/APP.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_common.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH583SFR.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\RVMSIS/core_riscv.h \
@@ -16,6 +17,7 @@ HAL/MCU.o: ../HAL/MCU.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbdev.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbhost.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/ISP583.h \
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include/snake.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/RTC.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/config.h \
@@ -40,8 +42,9 @@ HAL/MCU.o: ../HAL/MCU.c \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/KEYBOARD.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BATTERY.h \
  E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/WS2812.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h \
- E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include/snake.h
+ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h
+
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include/APP.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_common.h:
 
@@ -76,6 +79,8 @@ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbdev
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/CH58x_usbhost.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\StdPeriphDriver\inc/ISP583.h:
+
+E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include/snake.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/HAL.h:
 
@@ -126,5 +131,3 @@ E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/BATTERY.h:
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/WS2812.h:
 
 E:\Project\tp78_v2\mounriver_project\BLE_CH582M\HAL\include/CORE.h:
-
-E:\Project\tp78_v2\mounriver_project\BLE_CH582M\APP\include/snake.h:

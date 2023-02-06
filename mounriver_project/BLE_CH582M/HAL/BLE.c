@@ -37,7 +37,7 @@
 #define HID_LED_OUT_RPT_LEN         1
 
 // HID VOL input report length
-#define HID_VOL_IN_RPT_LEN          HID_VOLUME_DATA_LENGTH
+#define HID_VOL_IN_RPT_LEN          2 //HID_VOLUME_DATA_LENGTH
 
 /*********************************************************************
  * CONSTANTS
@@ -88,6 +88,18 @@
 /*********************************************************************
  * GLOBAL VARIABLES
  */
+
+// Volume code
+const uint8_t Volume_to_Code[8] = {
+    0xB0,   // Volume_Play
+    0xB5,   // Volume_Next
+    0xB6,   // Volume_Prev
+    0xE9,   // Volume_Incr
+    0xEA,   // Volume_Decr
+    0xE2,   // Volume_Mute
+    0xB1,   // Volume_Pause
+    0xB7,   // Volume_Stop
+};
 
 // Task ID
 tmosTaskID hidEmuTaskId=INVALID_TASK_ID;
@@ -390,15 +402,15 @@ uint16 HidEmu_ProcessEvent( uint8 task_id, uint16 events )
     return ( events ^ CHANGE_ADDR_EVT );
   }
 
-  if ( events & TEST_REPORT_EVT ) // 测试事件
+  if ( events & BLE_TEST_REPORT_EVT ) // 测试事件
   {
     hidEmuSendKbdReport( send_char );
     send_char++;
     if(send_char>=29) send_char = 4;
     hidEmuSendKbdReport( 0x00 );
     hidEmuSendMouseReport( MOUSE_BUTTON_NONE , 2 , 2 );
-    tmos_start_task( hidEmuTaskId, TEST_REPORT_EVT, 2000 );
-    return ( events ^ TEST_REPORT_EVT );
+    tmos_start_task( hidEmuTaskId, BLE_TEST_REPORT_EVT, 2000 );
+    return ( events ^ BLE_TEST_REPORT_EVT );
   }
 
   if ( events & START_MOUSE_REPORT_EVT )
@@ -417,8 +429,12 @@ uint16 HidEmu_ProcessEvent( uint8 task_id, uint16 events )
 
   if ( events & START_VOL_REPORT_EVT )
   {
+    UINT8 _hidvol[HID_VOL_IN_RPT_LEN] = { 0 }, i, j = 0;
+    for (i = 0; i < 8 && j < 2; i++) {
+      if (((UINT8)*HIDVolume & (1 << i))) _hidvol[j++] = Volume_to_Code[i];
+    }
     HidDev_Report( HID_RPT_ID_VOL_IN, HID_REPORT_TYPE_INPUT,
-                   HID_VOL_IN_RPT_LEN, HIDVolume );     // HID音量report
+                   HID_VOL_IN_RPT_LEN, _hidvol );     // HID音量report
     return ( events ^ START_VOL_REPORT_EVT );
   }
 

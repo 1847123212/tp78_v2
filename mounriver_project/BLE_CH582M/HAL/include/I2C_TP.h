@@ -15,8 +15,6 @@
   #define TPINT_GPIO_(x)  GPIOB_ ## x
   #define I2C_TP_ADDR     0x2B
 
-  extern uint8_t I2C_TP_data_ready;
-
   void I2C_TP_Init(char* debug_info);
   uint8_t I2C_TP_SendCommand_Sleep(void);
   uint8_t I2C_TP_SendCommand_Wakeup(void);

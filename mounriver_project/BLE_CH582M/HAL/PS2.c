@@ -16,8 +16,7 @@
 uint8_t PS2_bit_cnt = 0,
         PS2_byte_cnt = 0,
         PS2_byte = 0,
-        PS2_high_cnt = 0,
-        PS2_data_ready = 0;
+        PS2_high_cnt = 0;
 
 /*******************************************************************************
 * Function Name  : PS2_WaitCLKState
@@ -214,7 +213,7 @@ void PS2_IT_handler(void)
       }
     } else if (PS2_bit_cnt == 10) {   //校验位
 //    if ((PS2_high_cnt & 1) == (PS2DATA_State() != 0)) {
-//      PS2_data_ready = 2;
+//      //ERR??
 //    }
     } else if (PS2_bit_cnt == 11) {   //停止位
       if ((PS2_byte_cnt == 0 && (PS2_byte & 0x8)) || PS2_byte_cnt > 0) {    //检查Always1位是否为1
@@ -223,7 +222,7 @@ void PS2_IT_handler(void)
       }
       PS2_Dis_Data_Report();
       PS2_bit_cnt = 0;
-      PS2_data_ready = 1;
+      g_Ready_Status.ps2_data = TRUE;
     }
   }
 }
@@ -293,8 +292,8 @@ uint8_t PS2_Init(char* debug_info, BOOL is_IT)
  *
  *  //主循环中断写法
  *  while (1) {
- *      if (PS2_data_ready != 0) {
- *          PS2_data_ready = 0;
+ *      if (g_Ready_Status.ps2_data == TRUE) {
+ *          g_Ready_Status.ps2_data = FALSE;
  *          if (PS2_byte_cnt == 3) {
  *              PS2_byte_cnt = 0;
  *              printf("%d %d %d %d\n", PS2dat.LeftBtn, PS2dat.RightBtn, PS2dat.XMovement, PS2dat.YMovement);

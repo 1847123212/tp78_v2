@@ -70,12 +70,9 @@ uint8_t Extra_KeyMatrix[COL_SIZE][ROW_SIZE] = { 0 };  //¶îÍâ²ã°´¼ü¾ØÕó-±ê¼Ç°´ÏÂº
 uint32_t Row_Pin_ALL = 0, Colum_Pin_ALL = 0;
 
 uint8_t KEYBOARD_data_index = 2,
-        KEYBOARD_data_ready = 0,
-        KEYBOARD_mouse_ready = 0,
         LED_Change_flag = 0,
         Fn_state = 0;
 Keyboardstate* const Keyboarddat = (Keyboardstate*)&HID_DATA[6];
-BOOL PaintedEggMode = FALSE;
 static uint8_t (*KeyArr_Ptr)[ROW_SIZE] = CustomKey;
 static uint16_t KeyArr_ChangeTimes = 0;
 
@@ -290,15 +287,15 @@ UINT8 KEYBOARD_Custom_Function( void )
         break;
       case Fn_Mode_PaintedEgg:  // Fn+Delete²Êµ°
         Fn_Mode = Fn_Mode_None;
-        if (PaintedEggMode == FALSE) {
+        if (g_Enable_Status.paintedegg == FALSE) {
           LED_Change_flag = 1;
           led_style_func = WS2812_Style_Custom; // ²Êµ°±³¹â
           Snake_Init();
           OLED_UI_show_version(1);  // ÏÔÊ¾°æ±¾ĞÅÏ¢
-          PaintedEggMode = TRUE;
+          g_Enable_Status.paintedegg = TRUE;
         } else {
           OLED_UI_show_version(0);  // È¡ÏûÏÔÊ¾°æ±¾ĞÅÏ¢
-          PaintedEggMode = FALSE;
+          g_Enable_Status.paintedegg = FALSE;
         }
         break;
       case Fn_Mode_DisEnableBLE:
@@ -444,7 +441,7 @@ void KEYBOARD_Detection( void )
               }
           }
           KEYBOARD_data_index--;
-          KEYBOARD_data_ready = 1;  // ²úÉúÊÂ¼ş
+          g_Ready_Status.keyboard_key_data = TRUE;  // ²úÉúÊÂ¼ş
           return;
         }
     }
@@ -457,12 +454,12 @@ void KEYBOARD_Detection( void )
                 LED_BYTE_Buffer[Key_To_LEDNumber[current_colum][current_row]][1] =
                 LED_BYTE_Buffer[Key_To_LEDNumber[current_colum][current_row]][2] = LED_BRIGHTNESS;
             }
-            KEYBOARD_data_ready = 1; // ²úÉúÊÂ¼ş
+            g_Ready_Status.keyboard_key_data = TRUE; // ²úÉúÊÂ¼ş
             if (KeyArr_Ptr[current_colum][current_row] == KEY_Fn) {  // ¹¦ÄÜ¼ü
                 Fn_state = 1;
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_MouseL) {    // Êó±ê²Ù×÷
                 ((Mouse_Data_t*)HIDMouse)->data[0] |= 1 << KeyArr_Ptr[current_colum][current_row] - KEY_MouseL;
-                KEYBOARD_mouse_ready = 1;
+                g_Ready_Status.keyboard_mouse_data = TRUE;  // ²úÉúÊó±êÊÂ¼ş
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_LeftCTRL) {    // ÌØÊâ¼ü
                 Keyboarddat->data[0] |= 1 << (KeyArr_Ptr[current_colum][current_row] - KEY_LeftCTRL);
             } else {
@@ -475,12 +472,12 @@ void KEYBOARD_Detection( void )
             }
         } else if (KeyMatrix[current_colum][current_row] != 0 && Colum_GPIO_(ReadPortPin)( Colum_Pin[current_colum] ) != 0) {   // µ¯Æğ
             KeyMatrix[current_colum][current_row] = 0;
-            KEYBOARD_data_ready = 1; // ²úÉúÊÂ¼ş
+            g_Ready_Status.keyboard_key_data = TRUE; // ²úÉúÊÂ¼ş
             if (KeyArr_Ptr[current_colum][current_row] == KEY_Fn) {  // ¹¦ÄÜ¼ü
                 Fn_state = 0;
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_MouseL) {    // Êó±ê²Ù×÷
                 ((Mouse_Data_t*)HIDMouse)->data[0] &= ~(1 << KeyArr_Ptr[current_colum][current_row] - KEY_MouseL);
-                KEYBOARD_mouse_ready = 1;
+                g_Ready_Status.keyboard_mouse_data = TRUE;  // ²úÉúÊó±êÊÂ¼ş
             } else if (KeyArr_Ptr[current_colum][current_row] >= KEY_LeftCTRL) {    // ÌØÊâ¼ü
                 Keyboarddat->data[0] &= ~(1 << (KeyArr_Ptr[current_colum][current_row] - KEY_LeftCTRL));
             } else {

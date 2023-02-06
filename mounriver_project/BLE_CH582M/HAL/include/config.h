@@ -116,7 +116,7 @@
 #define SW_PAINTEDEGG               TRUE          // ²Êµ°
 #endif
 #ifndef HAL_I2C_TP
-#define HAL_I2C_TP                  FALSE         // I2CÐ¡ºìµã
+#define HAL_I2C_TP                  TRUE         // I2CÐ¡ºìµã
 #endif
 #ifndef HAL_MPR121_CAPMOUSE
 #define HAL_MPR121_CAPMOUSE         FALSE          // MPR121´¥Ãþ°å

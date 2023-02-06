@@ -103,6 +103,7 @@ static const uint8 hidInfo[HID_INFORMATION_LEN] =
 // HID Report Map characteristic value
 static const uint8 hidReportMap[] =
 {
+ /* mouse hid report */
   0x05, 0x01,     // USAGE_PAGE (Generic Desktop)
   0x09, 0x02,     // USAGE (Mouse)
   0xA1, 0x01,     // COLLECTION (Application)
@@ -130,30 +131,21 @@ static const uint8 hidReportMap[] =
   0xC0,           // END_COLLECTION
   0xC0,           // END_COLLECTION
 
-/*
-  0x05, 0x0C,     // Usage Pg (Generic Desktop)
-  0x09, 0x01,     // Usage (Vol)
-  0xA1, 0x01,     // Collection: (Application)
+ /* volume hid report */
+  0x05, 0x0c,
+  0x09, 0x01,     // Usage (Consumer)
+  0xA1, 0x01,
   0x85, 0x02,     // Report Id (2)
-                  //
-  0x09, 0xB0,     // Usage - Play
-  0x09, 0xB5,     // Usage - Scan Next Track
-  0x09, 0xB6,     // Usage - Scan Previous Track
-  0x09, 0xE9,     // Usage - Volume Increment
-  0x09, 0xEA,     // Usage - Volume Decrement
-  0x09, 0xE2,     // Usage - Mute
-  0x09, 0xB1,     // Usage - Pause
-  0x09, 0xB7,     // Usage - Stop
-  0x15, 0x00,     // Log Min (0)
-  0x25, 0x01,     // Log Max (1)
-                  //
-  0x95, 0x08,     // Report Count (8)
-  0x75, 0x01,     // Report Size (1)
-  0x81, 0x02,     // Input: (Data, Var, Abs)
-                  //
-  0xC0,           // End Collection
-*/
+  0x15, 0x00,
+  0x26, 0xff, 0x1f,
+  0x19, 0x00,
+  0x2A, 0xff, 0x1f,
+  0x75, 0x10,
+  0x95, 0x01,
+  0x81, 0x00,
+  0xc0,
 
+ /* keyboard hid report */
   0x05, 0x01,     // Usage Pg (Generic Desktop)
   0x09, 0x06,     // Usage (Keyboard)
   0xA1, 0x01,     // Collection: (Application)
@@ -244,7 +236,7 @@ static gattCharCfg_t hidReportMouseInClientCharCfg[GATT_MAX_NUM_CONN];
 // HID Report Reference characteristic descriptor, mouse input
 static uint8 hidReportRefMouseIn[HID_REPORT_REF_LEN] =
              { HID_RPT_ID_MOUSE_IN, HID_REPORT_TYPE_INPUT };
-/*
+
 // HID Report characteristic, Volume input
 static uint8 hidReportVolumeInProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
 static uint8 hidReportVolumeIn;
@@ -253,7 +245,7 @@ static gattCharCfg_t hidReportVolumeInClientCharCfg[GATT_MAX_NUM_CONN];
 // HID Report Reference characteristic descriptor, volume input
 static uint8 hidReportRefVolumeIn[HID_REPORT_REF_LEN] =
              { HID_RPT_ID_VOL_IN, HID_REPORT_TYPE_INPUT };
-*/
+
 // HID Report characteristic, key input
 static uint8 hidReportKeyInProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
 static uint8 hidReportKeyIn;
@@ -413,7 +405,7 @@ static gattAttribute_t hidAttrTbl[] =
     0,
     hidReportRefMouseIn
   },
-/*
+
   // HID Report characteristic, volume input declaration
   {
     { ATT_BT_UUID_SIZE, characterUUID },
@@ -445,7 +437,7 @@ static gattAttribute_t hidAttrTbl[] =
     0,
     hidReportRefVolumeIn
   },
-*/
+
   // HID Report characteristic, key input declaration
   {
     { ATT_BT_UUID_SIZE, characterUUID },
@@ -585,12 +577,10 @@ enum
   HID_REPORT_MOUSE_IN_IDX,        // HID Report characteristic, mouse input
   HID_REPORT_MOUSE_IN_CCCD_IDX,   // HID Report characteristic client characteristic configuration
   HID_REPORT_REF_MOUSE_IN_IDX,    // HID Report Reference characteristic descriptor, mouse input
-  /*
   HID_REPORT_VOL_IN_DECL_IDX,     // HID Report characteristic, volume input declaration
   HID_REPORT_VOL_IN_IDX,          // HID Report characteristic, volume input
   HID_REPORT_VOL_IN_CCCD_IDX,     // HID Report characteristic client characteristic configuration
   HID_REPORT_REF_VOL_IN_IDX,      // HID Report Reference characteristic descriptor, volume input
-  */
   HID_REPORT_KEY_IN_DECL_IDX,     // HID Report characteristic, key input declaration
   HID_REPORT_KEY_IN_IDX,          // HID Report characteristic, key input
   HID_REPORT_KEY_IN_CCCD_IDX,     // HID Report characteristic client characteristic configuration
@@ -643,6 +633,7 @@ bStatus_t Hid_AddService( void )
 
   // Initialize Client Characteristic Configuration attributes
   GATTServApp_InitCharCfg( INVALID_CONNHANDLE, hidReportMouseInClientCharCfg );
+  GATTServApp_InitCharCfg( INVALID_CONNHANDLE, hidReportVolumeInClientCharCfg );
   GATTServApp_InitCharCfg( INVALID_CONNHANDLE, hidReportKeyInClientCharCfg );
   GATTServApp_InitCharCfg( INVALID_CONNHANDLE, hidReportBootKeyInClientCharCfg );
 
@@ -663,15 +654,15 @@ bStatus_t Hid_AddService( void )
   hidRptMap[idx].cccdHandle = hidAttrTbl[HID_REPORT_MOUSE_IN_CCCD_IDX].handle;
   hidRptMap[idx].mode = HID_PROTOCOL_MODE_REPORT;
   idx++;
-/*
+
   // Volume input report
-  hidRptMap[1].id = hidReportRefVolumeIn[0];
-  hidRptMap[1].type = hidReportRefVolumeIn[1];
-  hidRptMap[1].handle = hidAttrTbl[HID_REPORT_VOL_IN_IDX].handle;
-  hidRptMap[1].cccdHandle = hidAttrTbl[HID_REPORT_VOL_IN_CCCD_IDX].handle;
-  hidRptMap[1].mode = HID_PROTOCOL_MODE_REPORT;
+  hidRptMap[idx].id = hidReportRefVolumeIn[0];
+  hidRptMap[idx].type = hidReportRefVolumeIn[1];
+  hidRptMap[idx].handle = hidAttrTbl[HID_REPORT_VOL_IN_IDX].handle;
+  hidRptMap[idx].cccdHandle = hidAttrTbl[HID_REPORT_VOL_IN_CCCD_IDX].handle;
+  hidRptMap[idx].mode = HID_PROTOCOL_MODE_REPORT;
   idx++;
-*/
+
   // Key input report
   hidRptMap[idx].id = hidReportRefKeyIn[0];
   hidRptMap[idx].type = hidReportRefKeyIn[1];

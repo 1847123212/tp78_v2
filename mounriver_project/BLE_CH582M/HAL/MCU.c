@@ -9,13 +9,9 @@
  *******************************************************************************/
 
 /******************************************************************************/
-/* 头文件包含 */
-#include "CH58x_common.h"
-#include "HAL.h"
-#include <string.h>
 
-/* 彩蛋 */
-#include "snake.h"
+#include "APP.h"
+#include "HAL.h"
 
 /*HID data*/
 UINT8 HID_DATA[HID_DATA_LENGTH] = { 0x0, 0x0, 0x0, 0x0, 0x0,
@@ -34,6 +30,7 @@ CapsLock_LEDOn_Status_t g_CapsLock_LEDOn_Status;  // 大小写信号
 Ready_Status_t g_Ready_Status;  // 就绪信号
 Enable_Status_t g_Enable_Status = { // 使能信号
    .ble = TRUE,
+   .tp = TRUE,
 };
 BOOL priority_USB = TRUE;   // USB和蓝牙/RF同时连接选择
 
@@ -66,8 +63,8 @@ __attribute__((weak)) void HID_KEYBOARD_Process(void)
 {
   uint8_t res;
   KEYBOARD_Detection();
-  if (KEYBOARD_data_ready != 0) {    // 产生键盘数据
-    KEYBOARD_data_ready = 0;
+  if (g_Ready_Status.keyboard_key_data == TRUE) {    // 产生键盘数据
+    g_Ready_Status.keyboard_key_data = FALSE;
     TP78_Idle_Clr();
     if ( EnterPasskey_flag == TRUE ) { // 处理输入配对密码
       res = KEYBOARD_EnterPasskey( &BLE_Passkey );
@@ -86,8 +83,8 @@ __attribute__((weak)) void HID_KEYBOARD_Process(void)
           tmos_set_event( RFTaskId, SBP_RF_KEYBOARD_REPORT_EVT );  // RF键盘事件
         }
       }
-      if (KEYBOARD_mouse_ready != 0) { // 发送键盘鼠标数据
-        KEYBOARD_mouse_ready = 0;
+      if (g_Ready_Status.keyboard_mouse_data == TRUE) { // 发送键盘鼠标数据
+        g_Ready_Status.keyboard_mouse_data = FALSE;
         tmos_memset(&HIDMouse[1], 0, 3);   // 只按左中右键没有其他操作
         if ( g_Ready_Status.usb == TRUE && priority_USB == TRUE ) {
           tmos_set_event( usbTaskID, USB_MOUSE_EVENT );  //USB鼠标事件
@@ -109,8 +106,8 @@ __attribute__((weak)) void HID_KEYBOARD_Process(void)
 *******************************************************************************/
 __attribute__((weak)) void HID_PS2TP_Process(void)
 {
-  if (PS2_data_ready != 0 && g_Enable_Status.tp == TRUE) {    // 发送小红点鼠标数据
-    PS2_data_ready = 0;
+  if (g_Ready_Status.ps2_data == TRUE && g_Enable_Status.tp == TRUE) {    // 发送小红点鼠标数据
+    g_Ready_Status.ps2_data = FALSE;
     TP78_Idle_Clr();
     if ( PS2_byte_cnt == 3 ) {  // 接收完数据报
       PS2_byte_cnt = 0;
@@ -136,8 +133,8 @@ __attribute__((weak)) void HID_PS2TP_Process(void)
 
 __attribute__((weak)) void HID_I2CTP_Process(void)
 {
-  if (I2C_TP_data_ready != 0 && g_Enable_Status.tp == TRUE) {    // 发送小红点鼠标数据
-    I2C_TP_data_ready = 0;
+  if (g_Ready_Status.i2ctp_data == TRUE && g_Enable_Status.tp == TRUE) {    // 发送小红点鼠标数据
+    g_Ready_Status.i2ctp_data = FALSE;
     TP78_Idle_Clr();
     if (I2C_TP_ReadPacket() == 0) { // 正常接受完数据包
       if ( g_Ready_Status.usb == TRUE && priority_USB == TRUE ) {
@@ -187,7 +184,7 @@ __attribute__((weak)) void HID_VOL_Process(void)
   if ( g_Ready_Status.usb == TRUE && priority_USB == TRUE ) {
     tmos_set_event( usbTaskID, USB_VOL_EVENT );  //USB音量事件
   } else if ( g_Ready_Status.ble == TRUE ) {
-    //tmos_set_event( hidEmuTaskId, START_VOL_REPORT_EVT );  //蓝牙音量事件
+    tmos_set_event( hidEmuTaskId, START_VOL_REPORT_EVT );  //蓝牙音量事件
   } else if ( g_Ready_Status.rf == TRUE ) {
     tmos_set_event( RFTaskId, SBP_RF_VOL_REPORT_EVT );  // RF键盘事件
   }
@@ -202,9 +199,9 @@ __attribute__((weak)) void HID_VOL_Process(void)
 __attribute__((weak)) void SW_PaintedEgg_Process(void)
 {
   KEYBOARD_Detection();
-  if (KEYBOARD_data_ready != 0) { // 产生键盘事件
+  if (g_Ready_Status.keyboard_key_data == TRUE) { // 产生键盘事件
     TP78_Idle_Clr();
-    KEYBOARD_data_ready = 0;
+    g_Ready_Status.keyboard_key_data = FALSE;
     if (KEYBOARD_Custom_Function() != 0) {
       switch (Keyboarddat->Key1) {
         case KEY_W: BodyDir[0] = DirUp; break;
@@ -725,7 +722,7 @@ tmosEvents HAL_ProcessEvent( tmosTaskID task_id, tmosEvents events )
   {
     // 彩蛋模式
 #if (defined SW_PAINTEDEGG) && (SW_PAINTEDEGG == TRUE)
-    if ( PaintedEggMode == TRUE ) {
+    if ( g_Enable_Status.paintedegg == TRUE ) {
       SW_PaintedEgg_Process();
       goto main_circulation_end;
     }

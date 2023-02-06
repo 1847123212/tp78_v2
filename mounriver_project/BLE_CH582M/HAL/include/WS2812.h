@@ -22,7 +22,7 @@
   #define TIMING_ONE          51
   #define TIMING_ZERO         24
   #define TIMING_RESET        0
-  #define RESET_FRAME_SIZE    80  // uints: tick
+  #define RESET_FRAME_SIZE    2  // uints: tick
 
   #define GREEN_INDEX         0
   #define RED_INDEX           1
